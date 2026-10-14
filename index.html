@@ -33,6 +33,7 @@
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding:16px 16px 120px}
 h1{font-family:var(--serif);font-weight:400;font-size:1.6rem;margin:4px 0 2px}
@@ -127,6 +128,39 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
 .tbl tr[data-k]:hover td{background:var(--paper)}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
 #geralChart rect[data-k]{cursor:pointer}
+nav.tabs button{padding:12px 2px 14px;font-size:.9rem}
+.wrap.largo{max-width:1180px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0 4px}
+@media (min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi span{display:block;font-size:.8rem;color:var(--muted)}
+.kpi b{display:block;font-family:var(--serif);font-weight:400;font-size:1.45rem;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi small{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}
+.planwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table.plan{border-collapse:separate;border-spacing:0;font-size:.84rem;font-variant-numeric:tabular-nums;min-width:100%}
+.plan th,.plan td{padding:7px 9px;white-space:nowrap;border-bottom:1px solid var(--line)}
+.plan thead th{position:sticky;top:0;background:var(--surface);z-index:2;font-weight:500;color:var(--muted);text-align:right}
+.plan thead th.agora{color:var(--petrol);font-weight:700}
+.plan th[scope=row],.plan thead th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;text-align:left;font-weight:500;max-width:170px;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--line)}
+.plan thead th:first-child{z-index:3}
+@media (max-width:520px){.plan th[scope=row],.plan thead th:first-child{max-width:118px}.plan th,.plan td{padding:7px 7px}}
+.plan td.c{text-align:right}
+.plan td.ed{cursor:pointer}
+.plan td.ed:hover{outline:2px solid var(--petrol);outline-offset:-2px}
+.plan td.vazio{color:var(--line)}
+.plan td.pago{background:var(--petrol-soft);color:var(--petrol)}
+.plan td.agora{box-shadow:inset 1px 0 0 var(--petrol),inset -1px 0 0 var(--petrol)}
+.plan td.tot{font-weight:700;border-left:1px solid var(--line)}
+.plan tr.sec th{background:var(--paper);color:var(--ink);font-weight:700;font-size:.8rem;padding-top:12px}
+.plan tr.sec td{background:var(--paper)}
+.plan tr.sub th,.plan tr.sub td{font-weight:700;border-bottom:2px solid var(--line)}
+.plan tr.res th,.plan tr.res td{font-weight:700}
+.plan .neg{color:var(--warn)}
+.plan tr.ro td{color:var(--muted)}
+dialog#dlg{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:18px;width:min(380px,92vw)}
+dialog#dlg::backdrop{background:rgba(0,0,0,.45)}
+dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
+.dlg-acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -219,6 +253,43 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
     <div class="card tblwrap" id="geralMeses"></div>
   </section>
 
+  <!-- ANO (planilha) -->
+  <section id="tab-ano" hidden>
+    <div class="weeknav" style="margin-top:6px">
+      <button id="aPrev" aria-label="Ano anterior">‹</button>
+      <div class="lbl" id="aLabel"></div>
+      <button id="aNext" aria-label="Próximo ano">›</button>
+    </div>
+    <div class="kpis" id="anoKpis"></div>
+    <p class="small muted" style="margin:10px 0 8px">Toque em um valor para editar ou marcar como pago. Células verdes já foram pagas. Os itens do cartão são editados na aba Cartão.</p>
+    <div class="planwrap" id="anoTabela"></div>
+
+    <h2>Nova linha</h2>
+    <div class="card">
+      <div class="grid">
+        <div class="full"><label for="nNome">Nome</label><input id="nNome" type="text" placeholder="Ex.: academia, mensalidade" autocomplete="off"></div>
+        <div><label for="nValor">Valor por mês (R$)</label><input id="nValor" type="text" inputmode="decimal" placeholder="0,00"></div>
+        <div><label for="nTipo">Grupo</label><select id="nTipo"><option value="fixa">Despesas fixas</option><option value="diversos">Gastos diversos</option><option value="investimento">Investimento</option></select></div>
+        <div><label for="nDe">De</label><input id="nDe" type="month"></div>
+        <div><label for="nAte">Até</label><input id="nAte" type="month"></div>
+        <div class="full"><button class="btn" id="nAdd" style="width:100%">Adicionar linha</button></div>
+      </div>
+      <p class="small muted" style="margin:8px 0 0">Cria a conta em todos os meses do período. Meses que já têm uma conta com esse nome não mudam.</p>
+    </div>
+  </section>
+
+  <dialog id="dlg">
+    <h3 id="dlgTitulo"></h3>
+    <label for="dlgValor">Valor (R$)</label>
+    <input id="dlgValor" type="text" inputmode="decimal" autocomplete="off">
+    <label class="check" id="dlgPagaBox" style="margin-top:12px"><input type="checkbox" id="dlgPaga"> Já foi paga</label>
+    <div class="dlg-acoes">
+      <button type="button" class="btn ghost" id="dlgApagar" style="margin-right:auto;color:var(--warn);border-color:var(--warn)">Apagar</button>
+      <button type="button" class="btn ghost" id="dlgCancelar">Cancelar</button>
+      <button type="button" class="btn" id="dlgSalvar">Salvar</button>
+    </div>
+  </dialog>
+
   <!-- CARTÃO -->
   <section id="tab-cartao" hidden>
     <div id="cartHero"></div>
@@ -282,7 +353,8 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="semana" aria-selected="true">Semana</button>
-  <button role="tab" data-tab="geral" aria-selected="false">Visão geral</button>
+  <button role="tab" data-tab="geral" aria-selected="false">Geral</button>
+  <button role="tab" data-tab="ano" aria-selected="false">Ano</button>
   <button role="tab" data-tab="cartao" aria-selected="false">Cartão</button>
   <button role="tab" data-tab="contas" aria-selected="false">Contas</button>
 </nav>
@@ -584,6 +656,81 @@ function renderGeral(){
       return `<tr data-k="${k}"><td>${mesCurto(k)}</td><td>${brl0(q.investimento)}</td><td style="color:var(${q.cartao/q.sal*100>meta()?"--warn":"--ink"})">${brl0(q.cartao)}</td><td style="color:var(${q.sobra<0?"--warn":"--ink"})">${brl0(q.sobra)}</td><td>${o!=null?brl0(o/n):"—"}<span class="muted small"> ×${n}</span></td></tr>`;}).join("")}</tbody></table>`:"";
 }
 
+/* ---------- render: ano (planilha) ---------- */
+const fmtN=v=>(Number(v)||0).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2});
+const GRUPOS=[["fixa","Despesas fixas"],["diversos","Gastos diversos"],["investimento","Investimento"]];
+function linhasAno(ano){
+  const g={fixa:new Map(),diversos:new Map(),investimento:new Map()};
+  S.contas.filter(c=>c.mes&&c.mes.slice(0,4)===ano).forEach(c=>{
+    const t=g[c.tipo]?c.tipo:"fixa";const key=slug(c.nome);
+    if(!g[t].has(key))g[t].set(key,{nome:c.nome,tipo:t,ordem:c.ordem??99,cel:{}});
+    const L=g[t].get(key);L.ordem=Math.min(L.ordem,c.ordem??99);(L.cel[c.mes]=L.cel[c.mes]||[]).push(c);});
+  const ord=m=>[...m.values()].sort((a,b)=>a.ordem-b.ordem||a.nome.localeCompare(b.nome));
+  return {fixa:ord(g.fixa),diversos:ord(g.diversos),investimento:ord(g.investimento)};
+}
+function renderAno(){
+  const ano=ui.ano;$("aLabel").textContent=ano;
+  const ms=Array.from({length:12},(_,i)=>`${ano}-${pad(i+1)}`);const agora=monthKey(today);
+  const L=linhasAno(ano);
+  // só mostra o cartão nos meses que têm salário ou contas (os demais estão fora do planejamento no app)
+  const ativo=k=>!!(salario(k)||contasMes(k).length);
+  const cartaoItens=S.cartao.filter(it=>ms.some(k=>ativo(k)&&itemNoMes(it,k)>0)).sort((a,b)=>sum(ms.map(k=>itemNoMes(b,k)))-sum(ms.map(k=>itemNoMes(a,k))));
+  // totais por mês
+  const T=ms.map(k=>{const cs=contasMes(k);const por=t=>sum(cs.filter(c=>(c.tipo||"fixa")===t).map(c=>c.valor));
+    const sal=salario(k);const fixa=por("fixa"),diversos=por("diversos"),investimento=por("investimento"),cartao=ativo(k)?cartaoMes(k):0;
+    const desp=fixa+diversos+investimento+cartao;const sobra=sal?sal-desp:null;const o=orcamento(k);const n=weeksOfMonth(k).length;
+    const ws=weeksOfMonth(k);const gasto=sum(gastosEntre(ymd(ws[0]),ymd(addDays(ws[ws.length-1],6))).map(g=>g.valor));
+    const pagas=cs.filter(c=>c.paga).length;
+    const nz=v=>v?v:null;
+    return {k,sal,fixa:nz(fixa),diversos:nz(diversos),investimento:nz(investimento),cartao:nz(cartao),desp:nz(desp),sobra,porSemana:o!=null?o/n:null,n,gasto,qtd:cs.length,pagas};});
+  // KPIs
+  const comSal=T.filter(t=>t.sal);
+  const tot=f=>sum(comSal.map(t=>t[f]||0));
+  const salAno=tot("sal"),despAno=tot("desp"),invAno=tot("investimento"),sobraAno=sum(comSal.map(t=>t.sobra||0));
+  const qtd=sum(T.map(t=>t.qtd)),pagas=sum(T.map(t=>t.pagas));
+  const pct=v=>salAno?Math.round(v/salAno*100)+"% do salário":"";
+  $("anoKpis").innerHTML=`
+    <div class="kpi"><span>Salário no ano</span><b>${brl0(salAno)}</b><small>${comSal.length} ${comSal.length===1?"mês":"meses"} com salário</small></div>
+    <div class="kpi"><span>Despesas e cartão</span><b>${brl0(despAno-invAno)}</b><small>${pct(despAno-invAno)}</small></div>
+    <div class="kpi"><span>Investimento</span><b>${brl0(invAno)}</b><small>${pct(invAno)}</small></div>
+    <div class="kpi"><span>Sobra para as semanas</span><b class="${sobraAno<0?"neg":""}">${brl0(sobraAno)}</b><small>${qtd?`${pagas} de ${qtd} contas pagas`:"Nenhuma conta no ano"}</small></div>`;
+  // tabela
+  const head=`<thead><tr><th>${ano}</th>${ms.map((k,i)=>`<th class="${k===agora?"agora":""}">${MABR[i]}</th>`).join("")}<th>Total</th></tr></thead>`;
+  const cAg=k=>k===agora?" agora":"";
+  const numRow=(rot,vals,cls="",neg=false)=>{const t=sum(vals.filter(v=>v!=null));
+    return `<tr class="${cls}"><th scope="row" title="${esc(rot)}">${esc(rot)}</th>${vals.map((v,i)=>`<td class="c${cAg(ms[i])}${neg&&v<0?" neg":""}">${v==null?"–":fmtN(v)}</td>`).join("")}<td class="c tot${neg&&t<0?" neg":""}">${fmtN(t)}</td></tr>`;};
+  const sec=t=>`<tr class="sec"><th scope="row">${t}</th>${"<td></td>".repeat(13)}</tr>`;
+  let b="";
+  // entradas
+  b+=sec("Entradas");
+  b+=`<tr><th scope="row">Salário</th>${T.map(t=>`<td class="c ed${cAg(t.k)}${t.sal?"":" vazio"}" data-sal="${t.k}">${t.sal?fmtN(t.sal):"–"}</td>`).join("")}<td class="c tot">${fmtN(salAno)}</td></tr>`;
+  const grupoRows=(tipo,rot)=>{const rows=L[tipo];if(!rows.length)return "";let h=sec(rot);
+    rows.forEach(r=>{const tt=sum(Object.values(r.cel).flat().map(c=>c.valor));
+      h+=`<tr><th scope="row" title="${esc(r.nome)}">${esc(r.nome)}</th>${ms.map(k=>{const cs=r.cel[k];
+        if(!cs)return `<td class="c ed vazio${cAg(k)}" data-tipo="${tipo}" data-nome="${esc(r.nome)}" data-ordem="${r.ordem}" data-mes="${k}">–</td>`;
+        const v=sum(cs.map(c=>c.valor));const pago=cs.every(c=>c.paga);
+        return `<td class="c ed${pago?" pago":""}${cAg(k)}" data-id="${esc(cs[0].id)}" title="${pago?"Paga":"Não paga"}">${fmtN(v)}</td>`;}).join("")}<td class="c tot">${fmtN(tt)}</td></tr>`;});
+    h+=numRow(`Total ${rot.toLowerCase()}`,T.map(t=>t[tipo]),"sub");return h;};
+  b+=grupoRows("fixa","Despesas fixas");
+  b+=grupoRows("diversos","Gastos diversos");
+  if(cartaoItens.length){b+=sec("Cartão (parcelas e assinaturas)");
+    cartaoItens.forEach(it=>{b+=numRow(it.nome,ms.map(k=>{const v=ativo(k)?itemNoMes(it,k):0;return v>0?v:null;}),"ro");});
+    b+=numRow("Total cartão",T.map(t=>t.cartao),"sub");}
+  b+=grupoRows("investimento","Investimento");
+  b+=sec("Resultado");
+  b+=numRow("Total que sai do salário",T.map(t=>t.desp),"res");
+  b+=numRow("Sobra para o mês",T.map(t=>t.sobra),"res",true);
+  b+=`<tr><th scope="row">Sobra em % do salário</th>${T.map(t=>`<td class="c${cAg(t.k)}${t.sobra<0?" neg":""}">${t.sal?Math.round(t.sobra/t.sal*100)+"%":"–"}</td>`).join("")}<td class="c tot">${salAno?Math.round(sobraAno/salAno*100)+"%":"–"}</td></tr>`;
+  b+=`<tr><th scope="row">Orçamento por semana</th>${T.map(t=>`<td class="c${cAg(t.k)}">${t.porSemana!=null?fmtN(Math.round(t.porSemana))+`<span class="muted"> ×${t.n}</span>`:"–"}</td>`).join("")}<td class="c tot"></td></tr>`;
+  b+=numRow("Gasto nas semanas",T.map(t=>t.gasto||null));
+  $("anoTabela").innerHTML=`<table class="plan">${head}<tbody>${b}</tbody></table>`;
+  if(!$("nDe").value)$("nDe").value=`${ano}-01`;
+  if(!$("nAte").value)$("nAte").value=`${ano}-12`;
+}
+
+function rolarAno(){const w=$("anoTabela");const th=w.querySelector("thead th.agora");const first=w.querySelector("thead th");
+  w.scrollLeft=th&&first?Math.max(0,th.offsetLeft-first.offsetWidth-th.offsetWidth):0;}
+
 function renderAjustes(){
   const a=document.activeElement;
   if(a!==$("cInicio"))$("cInicio").value=S.config.inicio||"";
@@ -595,15 +742,57 @@ function renderAjustes(){
 function render(){
   const ready=["gastos","cartao","contas","meses","config"].every(x=>S.loaded.has(x));
   $("status").textContent=db?(ready?"Tudo sincronizado entre vocês dois.":"Carregando os dados…"):"Sem conexão com os dados.";
-  renderQuem();renderSemana();renderGeral();renderCartao();renderContas();renderAjustes();
+  renderQuem();renderSemana();renderGeral();renderAno();renderCartao();renderContas();renderAjustes();
 }
 
 /* ---------- events ---------- */
 function switchTab(t){ui.tab=t;document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===t)));
-  ["semana","geral","cartao","contas"].forEach(n=>$("tab-"+n).hidden=n!==t);window.scrollTo(0,0);}
+  ["semana","geral","ano","cartao","contas"].forEach(n=>$("tab-"+n).hidden=n!==t);
+  document.querySelector(".wrap").classList.toggle("largo",t==="ano");window.scrollTo(0,0);if(t==="ano")rolarAno();}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
-$("gPrev").onclick=()=>{ui.ano=String(Number(ui.ano)-1);renderGeral();};
-$("gNext").onclick=()=>{ui.ano=String(Number(ui.ano)+1);renderGeral();};
+$("gPrev").onclick=()=>{ui.ano=String(Number(ui.ano)-1);renderGeral();renderAno();};
+$("gNext").onclick=()=>{ui.ano=String(Number(ui.ano)+1);renderGeral();renderAno();};
+$("aPrev").onclick=()=>{ui.ano=String(Number(ui.ano)-1);$("nDe").value="";$("nAte").value="";renderAno();renderGeral();rolarAno();};
+$("aNext").onclick=()=>{ui.ano=String(Number(ui.ano)+1);$("nDe").value="";$("nAte").value="";renderAno();renderGeral();rolarAno();};
+/* editor de célula */
+let edit=null;const dlg=$("dlg");
+function abrirEditor(e){
+  const td=e.target.closest("td.ed");if(!td)return;
+  if(td.dataset.sal){const k=td.dataset.sal;edit={kind:"sal",mes:k};
+    $("dlgTitulo").textContent=`Salário de ${mesNome(k)}`;$("dlgValor").value=fmtInput(salario(k));$("dlgPagaBox").hidden=true;$("dlgApagar").hidden=true;}
+  else if(td.dataset.id){const c=S.contas.find(x=>x.id===td.dataset.id);if(!c)return;edit={kind:"conta",id:c.id};
+    $("dlgTitulo").textContent=`${c.nome}, ${mesNome(c.mes)}`;$("dlgValor").value=fmtInput(c.valor);$("dlgPaga").checked=!!c.paga;$("dlgPagaBox").hidden=false;$("dlgApagar").hidden=false;}
+  else{edit={kind:"nova",tipo:td.dataset.tipo,nome:td.dataset.nome,mes:td.dataset.mes,ordem:Number(td.dataset.ordem)||50};
+    $("dlgTitulo").textContent=`${edit.nome}, ${mesNome(edit.mes)}`;$("dlgValor").value="";$("dlgPaga").checked=false;$("dlgPagaBox").hidden=false;$("dlgApagar").hidden=true;}
+  if(typeof dlg.showModal==="function")dlg.showModal();else dlg.setAttribute("open","");
+  setTimeout(()=>$("dlgValor").focus(),50);
+}
+const fecharEditor=()=>{edit=null;if(dlg.open)dlg.close();else dlg.removeAttribute("open");};
+$("anoTabela").addEventListener("click",abrirEditor);
+$("dlgCancelar").onclick=fecharEditor;
+$("dlgValor").addEventListener("keydown",e=>{if(e.key==="Enter")$("dlgSalvar").click();});
+$("dlgSalvar").onclick=async()=>{if(!edit)return;const v=money($("dlgValor").value);
+  if(!(v>=0)){toast("Digite um valor válido.");return;}const val=Math.round(v*100)/100;const ed=edit;fecharEditor();
+  if(ed.kind==="sal"){const cur={...(S.meses[ed.mes]||{})};delete cur.id;cur.salario=val;await write(()=>db.doc("meses/"+ed.mes).set(cur),"Salário salvo.");}
+  else if(ed.kind==="conta"){await write(()=>db.doc("contas/"+ed.id).update({valor:val,paga:$("dlgPaga").checked}),"Conta atualizada.");}
+  else{let id=`${ed.mes}-${slug(ed.nome)}`;if(S.contas.some(c=>c.id===id))id+="-"+Math.random().toString(36).slice(2,5);
+    await write(()=>db.collection("contas").doc(id).set({mes:ed.mes,nome:ed.nome,valor:val,tipo:ed.tipo,paga:$("dlgPaga").checked,ordem:ed.ordem}),"Conta adicionada.");}
+};
+$("dlgApagar").onclick=async()=>{if(!edit||edit.kind!=="conta")return;const id=edit.id;
+  if(!confirm("Apagar esta conta deste mês?"))return;fecharEditor();await write(()=>db.doc("contas/"+id).delete(),"Conta apagada.");};
+$("nAdd").onclick=async()=>{
+  const nome=$("nNome").value.trim();const v=money($("nValor").value);const de=$("nDe").value,ate=$("nAte").value;
+  if(!nome||!(v>0)||!de||!ate){toast("Preencha nome, valor e o período.");return;}
+  if(ate<de){toast("O mês final vem antes do inicial.");return;}
+  const tipo=$("nTipo").value;const dados={contas:{}};let n=0;
+  for(let k=de;k<=ate;k=addMonths(k,1)){if(contasMes(k).some(c=>slug(c.nome)===slug(nome)))continue;
+    let id=`${k}-${slug(nome)}`;if(S.contas.some(c=>c.id===id))id+="-"+Math.random().toString(36).slice(2,5);
+    dados.contas[id]={mes:k,nome,valor:Math.round(v*100)/100,tipo,paga:false,ordem:60};n++;if(n>60)break;}
+  if(!n){toast("Todos os meses do período já têm essa conta.");return;}
+  $("nAdd").disabled=true;
+  const ok=await write(()=>gravarBackup(dados),`Linha adicionada em ${n} ${n>1?"meses":"mês"}.`);
+  $("nAdd").disabled=false;if(ok){$("nNome").value="";$("nValor").value="";}
+};
 const irParaMes=e=>{const el=e.target.closest("[data-k]");if(!el)return;ui.mes=el.dataset.k;renderContas();switchTab("contas");};
 $("geralChart").addEventListener("click",irParaMes);
 $("geralMeses").addEventListener("click",irParaMes);
