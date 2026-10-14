@@ -182,6 +182,15 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
           <div class="full"><button class="btn ghost" id="cSalvar">Salvar ajustes</button></div>
         </div>
       </div>
+      <div class="card" style="margin-top:12px">
+        <p style="margin-bottom:6px;font-weight:700">Backup dos dados</p>
+        <p class="small muted" style="margin-bottom:10px">Baixe uma cópia de tudo de vez em quando e guarde no computador. Restaurar grava os dados do arquivo por cima dos atuais, sem apagar o que não estiver nele.</p>
+        <div class="grid">
+          <button class="btn ghost" id="bkBaixar">Baixar backup</button>
+          <button class="btn ghost" id="bkRestaurar">Restaurar backup</button>
+        </div>
+        <input type="file" id="bkArquivo" accept=".json,application/json" hidden>
+      </div>
       <p class="small muted" style="margin-top:8px">Cada semana vai de segunda a domingo e pertence ao mês em que cai a sua quinta-feira. Por isso alguns meses têm 4 semanas e outros têm 5. Saldo negativo é descontado da semana seguinte.</p>
     </details>
   </section>
@@ -256,6 +265,8 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
     <h2>Contas do mês</h2>
     <div class="card"><ul class="list" id="contasLista"></ul></div>
     <button class="btn ghost" id="mCopiar" style="width:100%;margin-top:10px" hidden>Copiar as contas do mês anterior</button>
+    <button class="btn ghost" id="mRepetir" style="width:100%;margin-top:10px" hidden>Repetir este mês até dezembro</button>
+    <p class="small muted" id="mRepetirInfo" style="margin-top:6px" hidden>Copia as contas e o salário deste mês para os meses seguintes do ano que ainda estão vazios. Meses já preenchidos não mudam.</p>
 
     <h2>Adicionar conta</h2>
     <div class="card">
@@ -280,7 +291,7 @@ table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;
 <script type="module">
 /* Firebase: biblioteca carregada direto dos servidores do Google */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* Configuração do projeto "Financeiro Moreira Dias" (não é senha; quem protege os dados são as regras do Firestore) */
@@ -315,6 +326,18 @@ function colRef(path){
     onSnapshot: (next, err) => onSnapshot(c, s => next({ docs: s.docs.map(d => ({ id: d.id, exists: true, data: () => d.data() })) }), e => err && err(mapErr(e))) };
 }
 const firebaseDb = { doc: docRef, collection: colRef };
+
+/* Restaurar backup: grava os documentos em lotes de até 400 (o limite do Firestore é 500 por lote) */
+async function gravarBackup(dados){
+  const ops=[];
+  for(const col of Object.keys(dados)) for(const id of Object.keys(dados[col]||{})) ops.push([col,id,dados[col][id]]);
+  for(let i=0;i<ops.length;i+=400){
+    const lote=writeBatch(fdb);
+    ops.slice(i,i+400).forEach(([col,id,d])=>{const x={...d};delete x.id;lote.set(doc(fdb,col,id),x);});
+    await wrap(lote.commit());
+  }
+  return ops.length;
+}
 
 (function(){
 "use strict";
@@ -513,6 +536,8 @@ function renderContas(){
     <div class="li-main"><div class="t">${esc(c.nome)}</div><div class="s">${c.tipo==="investimento"?"Investimento":c.tipo==="diversos"?"Gasto diverso":"Despesa fixa"}</div></div>
     <span class="amt">${brl(c.valor)}</span><button class="x" data-delk="${esc(c.id)}" aria-label="Apagar conta">✕</button></li>`).join(""):`<li class="empty">Nenhuma conta cadastrada para este mês.</li>`;
   $("mCopiar").hidden=!(cs.length===0&&contasMes(addMonths(k,-1)).length>0);
+  const podeRepetir=cs.length>0&&k.slice(5)!=="12";
+  $("mRepetir").hidden=!podeRepetir;$("mRepetirInfo").hidden=!podeRepetir;
 }
 
 /* ---------- render: visão geral ---------- */
@@ -598,6 +623,24 @@ $("gAdd").onclick=async()=>{
 };
 $("semLista").addEventListener("click",e=>{const d=e.target.closest("[data-delg]");if(d){if(confirm("Apagar este gasto?"))write(()=>db.doc("gastos/"+d.dataset.delg).delete(),"Gasto apagado.");}});
 $("semLista").addEventListener("change",e=>{const c=e.target.closest("[data-pago]");if(c)write(()=>db.doc("gastos/"+c.dataset.pago).update({pagoFatura:c.checked}));});
+$("bkBaixar").onclick=()=>{
+  const limpa=arr=>Object.fromEntries(arr.map(d=>{const x={...d};const id=x.id;delete x.id;return [id,x];}));
+  const backup={app:"nosso-mes",versao:1,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos)}};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,1)],{type:"application/json"}));
+  const a=document.createElement("a");a.href=url;a.download=`nosso-mes-backup-${ymd(new Date())}.json`;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+};
+$("bkRestaurar").onclick=()=>{if(!db){toast("Entre com a sua conta para restaurar.");return;}$("bkArquivo").value="";$("bkArquivo").click();};
+$("bkArquivo").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  let b;try{b=JSON.parse(await f.text());}catch(x){toast("Esse arquivo não é um backup válido.");return;}
+  if(!b||b.app!=="nosso-mes"||!b.dados){toast("Esse arquivo não é um backup do Nosso mês.");return;}
+  const n=Object.values(b.dados).reduce((t,c)=>t+Object.keys(c||{}).length,0);
+  if(!confirm(`Restaurar ${n} registros do backup de ${b.exportadoEm||"data desconhecida"}? Os registros com o mesmo nome serão substituídos.`))return;
+  $("bkRestaurar").disabled=true;
+  const ok=await write(()=>gravarBackup(b.dados),`Backup restaurado: ${n} registros.`);
+  $("bkRestaurar").disabled=false;
+});
 $("cSalvar").onclick=()=>{
   const ini=$("cInicio").value;const aj=money($("cAjuste").value);const mt=Number($("cMeta").value);
   const nomes=$("cNomes").value.split(",").map(s=>s.trim()).filter(Boolean);
@@ -633,6 +676,25 @@ $("kAdd").onclick=async()=>{const nome=$("kNome").value.trim();const v=money($("
 $("mCopiar").onclick=async()=>{const prev=contasMes(addMonths(ui.mes,-1));$("mCopiar").disabled=true;
   for(const c of prev){const ok=await write(()=>db.collection("contas").doc(`${ui.mes}-${slug(c.nome)}`).set({mes:ui.mes,nome:c.nome,valor:c.valor,tipo:c.tipo||"fixa",paga:false,ordem:c.ordem??50}));if(!ok)break;}
   $("mCopiar").disabled=false;toast("Contas copiadas. Ajuste os valores que mudaram.");};
+
+$("mRepetir").onclick=async()=>{
+  const k=ui.mes;const cs=contasMes(k);const sal=salario(k);const ano=k.slice(0,4);
+  const alvos=[];for(let m=addMonths(k,1);m.slice(0,4)===ano;m=addMonths(m,1))alvos.push(m);
+  const vazios=alvos.filter(x=>contasMes(x).length===0);
+  const semSal=sal?alvos.filter(x=>!salario(x)):[];
+  if(!vazios.length&&!semSal.length){toast("Os meses seguintes deste ano já estão preenchidos.");return;}
+  const partes=[];
+  if(vazios.length)partes.push(`as ${cs.length} contas para ${vazios.length} ${vazios.length>1?"meses":"mês"} (${vazios.map(mesCurto).join(", ")})`);
+  if(semSal.length)partes.push(`o salário de ${brl(sal)} para ${semSal.length} ${semSal.length>1?"meses":"mês"} sem salário`);
+  if(!confirm(`Copiar ${partes.join(" e ")}? Meses que já têm contas não serão alterados.`))return;
+  const dados={contas:{},meses:{}};
+  vazios.forEach(x=>{const usados=new Set();cs.forEach(c=>{let id=`${x}-${slug(c.nome)}`,n=2;while(usados.has(id))id=`${x}-${slug(c.nome)}-${n++}`;usados.add(id);
+    dados.contas[id]={mes:x,nome:c.nome,valor:c.valor,tipo:c.tipo||"fixa",paga:false,ordem:c.ordem??50};});});
+  semSal.forEach(x=>{const cur={...(S.meses[x]||{})};delete cur.id;dados.meses[x]={...cur,salario:sal};});
+  $("mRepetir").disabled=true;
+  await write(()=>gravarBackup(dados),"Meses preenchidos. Ajuste o que for diferente em cada um.");
+  $("mRepetir").disabled=false;
+};
 
 /* ---------- boot ---------- */
 render();
