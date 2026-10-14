@@ -31,9 +31,14 @@
   --petrol:#5CC0B5; --petrol-soft:#183A37; --warn:#F2847A; --warn-soft:#3E1F1C;
   --amber:#E3B04B; --amber-soft:#3A2E14; --sim:#B49AE6; color-scheme:dark;
 }
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
+body{overflow-x:hidden;overflow-x:clip}
+.grid>*{min-width:0}
+@media (max-width:440px){.grid .m2{grid-column:1/-1}}
+input,select{min-width:0;max-width:100%}
+input[type=month],input[type=date]{-webkit-appearance:none;appearance:none;display:block}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding:16px 16px 120px}
 h1{font-family:var(--serif);font-weight:400;font-size:1.6rem;margin:4px 0 2px}
@@ -115,6 +120,9 @@ ul.list li:last-child{border-bottom:0}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-size:.9rem;max-width:90vw;z-index:9;opacity:0;transition:opacity .2s}
 .toast.on{opacity:1}
 details summary{cursor:pointer;color:var(--muted);font-size:.9rem;padding:8px 0}
+:root{--env:#0D5C57;--env-neg:#B3261E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--env:#17605A;--env-neg:#8E2B23}}
+:root[data-theme="dark"]{--env:#17605A;--env-neg:#8E2B23}
 :root{--c-fixa:#0D5C57;--c-diversos:#A86F00;--c-cartao:#B3261E;--c-investimento:#2F55A4;--c-sobra:#8DBFAE}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-fixa:#4FB3A8;--c-diversos:#D9A441;--c-cartao:#E8776D;--c-investimento:#7D9BE0;--c-sobra:#2F6B5C}}
 :root[data-theme="dark"]{--c-fixa:#4FB3A8;--c-diversos:#D9A441;--c-cartao:#E8776D;--c-investimento:#7D9BE0;--c-sobra:#2F6B5C}
@@ -135,6 +143,7 @@ nav.tabs button{padding:12px 2px 14px;font-size:.9rem}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .kpi span{display:block;font-size:.8rem;color:var(--muted)}
 .kpi b{display:block;font-family:var(--serif);font-weight:400;font-size:1.45rem;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi b.neg{color:var(--warn)}
 .kpi small{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}
 .planwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 table.plan{border-collapse:separate;border-spacing:0;font-size:.84rem;font-variant-numeric:tabular-nums;min-width:100%}
@@ -148,6 +157,11 @@ table.plan{border-collapse:separate;border-spacing:0;font-size:.84rem;font-varia
 .plan td.ed{cursor:pointer}
 .plan td.ed:hover{outline:2px solid var(--petrol);outline-offset:-2px}
 .plan td.vazio{color:var(--line)}
+.plan th.nome{cursor:pointer}
+.plan th.nome:hover{color:var(--petrol);text-decoration:underline}
+dialog#dlgLinha{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:18px;width:min(380px,92vw)}
+dialog#dlgLinha::backdrop{background:rgba(0,0,0,.45)}
+dialog#dlgLinha h3{margin:0 0 6px;font-size:1.05rem}
 .plan td.pago{background:var(--petrol-soft);color:var(--petrol)}
 .plan td.agora{box-shadow:inset 1px 0 0 var(--petrol),inset -1px 0 0 var(--petrol)}
 .plan td.tot{font-weight:700;border-left:1px solid var(--line)}
@@ -161,13 +175,81 @@ dialog#dlg{border:1px solid var(--line);border-radius:16px;background:var(--surf
 dialog#dlg::backdrop{background:rgba(0,0,0,.45)}
 dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
 .dlg-acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- redesenho ---------- */
+.topo{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.topo h1{margin:0;font-size:1.75rem;letter-spacing:-.01em}
+.topo #status{margin:2px 0 0}
+.userchip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 4px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--petrol);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:.95rem}
+.userchip button{background:none;border:0;color:var(--muted);font-size:.85rem;padding:4px 6px;border-radius:999px}
+.userchip button:hover{color:var(--warn)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.env{position:relative;margin:14px 0 8px;border-radius:20px;background:var(--env);color:#F2FBF9;overflow:hidden;padding:46px 20px 18px}
+.env.neg{background:var(--env-neg)}
+.note{background:var(--env)!important}.note.neg{background:var(--env-neg)!important}
+.env::before{content:"";position:absolute;left:0;right:0;top:0;height:64px;background:rgba(255,255,255,.13);clip-path:polygon(0 0,100% 0,50% 100%)}
+.env::after{content:"";position:absolute;left:0;right:0;top:0;height:64px;background:linear-gradient(to bottom right,transparent 49.6%,rgba(255,255,255,.22) 50%,transparent 50.6%),linear-gradient(to bottom left,transparent 49.6%,rgba(255,255,255,.22) 50%,transparent 50.6%);background-size:50% 100%;background-position:left,right;background-repeat:no-repeat}
+.env svg.guilloche{position:absolute;left:-80px;bottom:-110px;width:300px;height:300px;opacity:.12;pointer-events:none;top:auto;right:auto}
+.env-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.env-label{font-size:.85rem;opacity:.9;margin:0}
+.env .big{font-family:var(--serif);font-size:clamp(2.2rem,10vw,3.3rem);line-height:1.02;margin:4px 0 2px}
+.env-sub{margin:0;font-size:.92rem;opacity:.9}
+.ring{position:relative;flex:0 0 auto;width:92px;height:92px}
+.ring svg{width:92px;height:92px;transform:rotate(-90deg)}
+.ring .trk{stroke:rgba(255,255,255,.22)}
+.ring .val{stroke:#F2FBF9;transition:stroke-dashoffset .6s ease}
+.ring>span{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:.72rem;line-height:1.15;opacity:.95}
+.ring b{display:block;font-size:1.15rem}
+.env-chips{position:relative;display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.env-chips span{background:rgba(255,255,255,.16);border-radius:999px;padding:5px 10px;font-size:.8rem}
+.env-note{position:relative;margin:10px 0 0;font-size:.8rem;opacity:.85}
+.weeks{gap:8px}
+.weeks button{position:relative;overflow:hidden;border-radius:14px;padding:9px 10px 12px;white-space:nowrap;min-width:84px}
+.weeks button i{position:absolute;left:10px;right:10px;bottom:6px;height:3px;border-radius:2px;background:var(--line)}
+.weeks button i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);border-radius:2px;background:var(--petrol)}
+.weeks button.neg i::after{background:var(--warn)}
+.weeks button.cur{background:var(--petrol-soft)}
+.ico{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--paper);display:grid;place-items:center;font-size:1.2rem}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:26px 0 10px}
+.sec-head h2{margin:0;white-space:nowrap}
+.sec-head span{text-align:right}
+.sec-head span{font-size:.85rem;color:var(--muted)}
+.fab{position:fixed;right:max(16px,calc(50% - 304px));bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--petrol);color:var(--surface);border:0;border-radius:18px;height:56px;padding:0 20px 0 16px;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(13,92,87,.35)}
+.fab svg{width:22px;height:22px}
+dialog.sheet{border:0;padding:0;margin:auto auto 0;width:min(640px,100vw);max-width:100vw;max-height:92vh;border-radius:22px 22px 0 0;background:var(--surface);color:var(--ink)}
+dialog.sheet::backdrop{background:rgba(0,0,0,.45)}
+dialog.sheet[open]{animation:subir .22s ease-out}
+@keyframes subir{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-in{padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+.sheet-grip{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sheet-head h2{margin:0}
+.valor-grande{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--line);margin:4px 0 14px;padding:4px 2px}
+.valor-grande:focus-within{border-color:var(--petrol)}
+.valor-grande span{font-family:var(--serif);font-size:1.6rem;color:var(--muted)}
+.valor-grande input{border:0!important;background:transparent!important;font-family:var(--serif);font-size:2.4rem;padding:0!important;min-height:0!important;width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 12px;font-size:.88rem;min-height:40px}
+.chips button[aria-pressed="true"]{background:var(--petrol);border-color:var(--petrol);color:var(--surface);font-weight:700}
+nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 10px;font-size:.74rem;border-top:0}
+nav.tabs button svg{width:24px;height:24px;padding:3px 14px;box-sizing:content-box;border-radius:999px;transition:background .15s}
+nav.tabs button[aria-selected="true"]{color:var(--petrol);font-weight:700}
+nav.tabs button[aria-selected="true"] svg{background:var(--petrol-soft)}
+input.cbx,#semLista input[type=checkbox]{-webkit-appearance:none;appearance:none;width:26px!important;height:26px!important;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;margin:0}
+input.cbx:checked,#semLista input[type=checkbox]:checked{background:var(--petrol);border-color:var(--petrol)}
+input.cbx:checked::after,#semLista input[type=checkbox]:checked::after{content:"";width:6px;height:11px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:translate(0,-1px) rotate(45deg)}
+.card{border-radius:16px}
+.wrap{padding-bottom:160px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
 </style>
 </head>
 <body class="deslogado">
 <div class="wrap">
-  <h1>Nosso mês</h1>
-  <p class="muted small" id="status">Carregando os dados…</p>
+  <header class="topo">
+    <div><h1>Nosso mês</h1><p class="muted small" id="status">Carregando os dados…</p></div>
+    <div class="userchip" id="userBar" hidden><span class="avatar" id="userAvatar" aria-hidden="true"></span><span class="sr" id="userEmail"></span><button id="btnSair">Sair</button></div>
+  </header>
   <div id="offline" class="banner" hidden>Não foi possível conectar ao banco de dados. Verifique a internet e recarregue a página.</div>
   <div id="readonly" class="banner" hidden>Este e-mail não tem permissão para acessar os dados. Saia e entre com um dos e-mails liberados.</div>
   <div id="login" class="card" hidden style="margin-top:16px;text-align:center;padding:28px 16px">
@@ -175,7 +257,6 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
     <button class="btn" id="btnLogin">Entrar com Google</button>
     <p class="small muted" id="loginErro" style="margin-top:12px"></p>
   </div>
-  <p class="small muted" id="userBar" hidden style="margin-top:-4px"><span id="userEmail"></span> <button id="btnSair" style="background:none;border:0;color:var(--petrol);text-decoration:underline;padding:0 4px">Sair</button></p>
 
   <!-- SEMANA -->
   <section id="tab-semana">
@@ -187,21 +268,25 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
     <div id="semHero"></div>
     <div class="weeks" id="semWeeks" aria-label="Semanas do mês"></div>
 
-    <h2>Lançar gasto</h2>
-    <div class="card">
-      <div class="grid">
-        <div><label for="gValor">Valor (R$)</label><input id="gValor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
-        <div><label for="gData">Data</label><input id="gData" type="date"></div>
-        <div class="full"><label for="gDesc">Descrição</label><input id="gDesc" type="text" placeholder="Ex.: mercado, farmácia, pizza" autocomplete="off"></div>
-        <div><label for="gCat">Categoria</label>
-          <select id="gCat"><option>Mercado</option><option>Comer fora</option><option>Lazer</option><option>Farmácia</option><option>Transporte</option><option>Casa</option><option>Pets</option><option>Outros</option></select></div>
-        <div><label>Quem gastou</label><div class="seg" id="gQuem"></div></div>
-        <div class="full"><label class="check"><input type="checkbox" id="gPago"> Já paguei esse valor na fatura</label></div>
-        <div class="full"><button class="btn" id="gAdd" style="width:100%">Lançar gasto</button></div>
+    <dialog class="sheet" id="sheetGasto" aria-labelledby="sheetTitulo">
+      <div class="sheet-in">
+        <div class="sheet-grip"></div>
+        <div class="sheet-head"><h2 id="sheetTitulo">Novo gasto</h2><button class="x" id="sheetFechar" aria-label="Fechar">✕</button></div>
+        <label for="gValor" class="sr">Valor (R$)</label>
+        <div class="valor-grande"><span>R$</span><input id="gValor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+        <div class="grid">
+          <div class="full"><label>Categoria</label><div class="chips" id="gCats"></div>
+            <select id="gCat" hidden><option>Mercado</option><option>Comer fora</option><option>Lazer</option><option>Farmácia</option><option>Transporte</option><option>Casa</option><option>Pets</option><option>Outros</option></select></div>
+          <div class="full"><label for="gDesc">Descrição (opcional)</label><input id="gDesc" type="text" placeholder="Ex.: feira, pizza, remédio" autocomplete="off"></div>
+          <div class="m2"><label for="gData">Data</label><input id="gData" type="date"></div>
+          <div class="m2"><label>Quem gastou</label><div class="seg" id="gQuem"></div></div>
+          <div class="full"><label class="check"><input type="checkbox" id="gPago"> Já paguei esse valor na fatura</label></div>
+          <div class="full"><button class="btn" id="gAdd" style="width:100%">Lançar gasto</button></div>
+        </div>
       </div>
-    </div>
+    </dialog>
 
-    <h2 id="semListaTitulo">Gastos da semana</h2>
+    <div class="sec-head"><h2 id="semListaTitulo">Gastos da semana</h2><span id="semTotal"></span></div>
     <div class="card"><ul class="list" id="semLista"></ul></div>
     <p class="small muted" id="semFatura" style="margin-top:10px"></p>
 
@@ -232,7 +317,7 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
   <!-- VISÃO GERAL -->
   <section id="tab-geral" hidden>
     <h2 id="geralAgoraT" style="margin-top:12px">Agora</h2>
-    <div class="card" id="geralAgora"></div>
+    <div class="kpis" id="geralAgora" style="margin-top:0"></div>
 
     <div class="weeknav" style="margin-top:28px">
       <button id="gPrev" aria-label="Ano anterior">‹</button>
@@ -261,17 +346,17 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
       <button id="aNext" aria-label="Próximo ano">›</button>
     </div>
     <div class="kpis" id="anoKpis"></div>
-    <p class="small muted" style="margin:10px 0 8px">Toque em um valor para editar ou marcar como pago. Células verdes já foram pagas. Os itens do cartão são editados na aba Cartão.</p>
+    <p class="small muted" style="margin:10px 0 8px">Toque em um valor para editar ou marcar como pago, e no nome de uma conta para apagar a linha. Células verdes já foram pagas. Os itens do cartão são editados na aba Cartão.</p>
     <div class="planwrap" id="anoTabela"></div>
 
     <h2>Nova linha</h2>
     <div class="card">
       <div class="grid">
         <div class="full"><label for="nNome">Nome</label><input id="nNome" type="text" placeholder="Ex.: academia, mensalidade" autocomplete="off"></div>
-        <div><label for="nValor">Valor por mês (R$)</label><input id="nValor" type="text" inputmode="decimal" placeholder="0,00"></div>
-        <div><label for="nTipo">Grupo</label><select id="nTipo"><option value="fixa">Despesas fixas</option><option value="diversos">Gastos diversos</option><option value="investimento">Investimento</option></select></div>
-        <div><label for="nDe">De</label><input id="nDe" type="month"></div>
-        <div><label for="nAte">Até</label><input id="nAte" type="month"></div>
+        <div class="m2"><label for="nValor">Valor por mês (R$)</label><input id="nValor" type="text" inputmode="decimal" placeholder="0,00"></div>
+        <div class="m2"><label for="nTipo">Grupo</label><select id="nTipo"><option value="fixa">Despesas fixas</option><option value="diversos">Gastos diversos</option><option value="investimento">Investimento</option></select></div>
+        <div class="m2"><label for="nDe">De</label><input id="nDe" type="month"></div>
+        <div class="m2"><label for="nAte">Até</label><input id="nAte" type="month"></div>
         <div class="full"><button class="btn" id="nAdd" style="width:100%">Adicionar linha</button></div>
       </div>
       <p class="small muted" style="margin:8px 0 0">Cria a conta em todos os meses do período. Meses que já têm uma conta com esse nome não mudam.</p>
@@ -287,6 +372,19 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
       <button type="button" class="btn ghost" id="dlgApagar" style="margin-right:auto;color:var(--warn);border-color:var(--warn)">Apagar</button>
       <button type="button" class="btn ghost" id="dlgCancelar">Cancelar</button>
       <button type="button" class="btn" id="dlgSalvar">Salvar</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlgLinha">
+    <h3 id="dlgLinhaTitulo"></h3>
+    <p class="small muted" id="dlgLinhaInfo" style="margin:0 0 12px"></p>
+    <div class="grid">
+      <div><label for="dlgLinhaDe">Apagar de</label><select id="dlgLinhaDe"></select></div>
+      <div><label for="dlgLinhaAte">Até</label><select id="dlgLinhaAte"></select></div>
+    </div>
+    <div class="dlg-acoes">
+      <button type="button" class="btn ghost" id="dlgLinhaCancelar">Cancelar</button>
+      <button type="button" class="btn" id="dlgLinhaApagar" style="background:var(--warn)">Apagar</button>
     </div>
   </dialog>
 
@@ -351,12 +449,13 @@ dialog#dlg h3{margin:0 0 12px;font-size:1.05rem}
   </section>
 </div>
 
+<button class="fab" id="fabGasto" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Gasto</button>
 <nav class="tabs" role="tablist">
-  <button role="tab" data-tab="semana" aria-selected="true">Semana</button>
-  <button role="tab" data-tab="geral" aria-selected="false">Geral</button>
-  <button role="tab" data-tab="ano" aria-selected="false">Ano</button>
-  <button role="tab" data-tab="cartao" aria-selected="false">Cartão</button>
-  <button role="tab" data-tab="contas" aria-selected="false">Contas</button>
+  <button role="tab" data-tab="semana" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="m3.5 7 8.5 6.5L20.5 7"/></svg><span>Semana</span></button>
+  <button role="tab" data-tab="geral" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg><span>Geral</span></button>
+  <button role="tab" data-tab="ano" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M3.5 14h17M9 4v16"/></svg><span>Ano</span></button>
+  <button role="tab" data-tab="cartao" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span>Cartão</span></button>
+  <button role="tab" data-tab="contas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 7 2 2 3.5-3.5M4 15l2 2 3.5-3.5M13 8h7M13 16h7"/></svg><span>Contas</span></button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -398,6 +497,11 @@ function colRef(path){
     onSnapshot: (next, err) => onSnapshot(c, s => next({ docs: s.docs.map(d => ({ id: d.id, exists: true, data: () => d.data() })) }), e => err && err(mapErr(e))) };
 }
 const firebaseDb = { doc: docRef, collection: colRef };
+
+/* Apaga vários documentos de uma vez, em lotes */
+async function apagarVarios(col,ids){
+  for(let i=0;i<ids.length;i+=400){const lote=writeBatch(fdb);ids.slice(i,i+400).forEach(id=>lote.delete(doc(fdb,col,id)));await wrap(lote.commit());}
+}
 
 /* Restaurar backup: grava os documentos em lotes de até 400 (o limite do Firestore é 500 por lote) */
 async function gravarBackup(dados){
@@ -445,7 +549,7 @@ const guilloche=(()=>{let p="";for(let i=0;i<18;i++){const r=40+i*6;p+=`<ellipse
 const today=new Date();
 const S={config:{},gastos:[],cartao:[],contas:[],meses:{},loaded:new Set(),readonly:false};
 const ui={tab:"semana",week:mondayOf(today),mes:monthKey(today),ano:String(today.getFullYear()),sTipo:"parcela",quem:store.get("nm-quem")};
-let db=null;
+let db=null;let nomeUsuario="";
 
 const pessoas=()=>{const n=(S.config.pessoas&&S.config.pessoas.length)?S.config.pessoas:["Matheus","Brunna"];return n;};
 const meta=()=>Number(S.config.metaCartao??15);
@@ -494,6 +598,9 @@ const slug=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerC
 const newId=p=>`${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
 
 /* ---------- render: semana ---------- */
+const CAT_ICO={"Mercado":"🛒","Comer fora":"🍽️","Lazer":"🎉","Farmácia":"💊","Transporte":"⛽","Casa":"🏠","Pets":"🐾","Outros":"✨"};
+function renderCats(){const v=$("gCat").value;
+  $("gCats").innerHTML=Object.keys(CAT_ICO).map(c=>`<button type="button" data-v="${c}" aria-pressed="${c===v}">${CAT_ICO[c]} ${c}</button>`).join("");}
 function renderQuem(){
   const ps=pessoas();if(!ui.quem||!ps.includes(ui.quem))ui.quem=ps[0];
   $("gQuem").innerHTML=ps.map(p=>`<button type="button" data-v="${esc(p)}" aria-pressed="${p===ui.quem}">${esc(p)}</button>`).join("");
@@ -501,31 +608,49 @@ function renderQuem(){
 function renderSemana(){
   const mon=ui.week;$("wLabel").textContent=rangeLabel(mon);
   const r=saldoAte(mon);const st=inicio();
-  let hero;
+  let hero;const mesTxt=MESES[Number(r.k.slice(5))-1];
+  const hoje=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const fim=addDays(mon,6);const atual=hoje>=mon&&hoje<=fim;const passada=hoje>fim;
+  const diasRest=atual?7-((hoje.getDay()+6)%7):(passada?0:7);
   if(r.cota==null){
-    hero=`<div class="note">${guilloche}<p>Semana ${r.idx} de ${r.n} de ${MESES[Number(r.k.slice(5))-1]}</p><div class="big">${brl(-r.gasto)}</div><p>Ainda não há orçamento para ${mesNome(r.k)}. Cadastre o salário e as contas na aba Contas.</p></div>`;
+    hero=`<div class="env">${guilloche}<p class="env-label">Semana ${r.idx} de ${r.n} de ${mesTxt}</p><div class="big num">${brl(r.gasto)}</div><p class="env-sub">gastos nesta semana</p><p class="env-note">Ainda não há orçamento para ${mesNome(r.k)}. Cadastre o salário e as contas na aba Contas.</p></div>`;
   }else{
-    const neg=r.saldo<0;const pct=r.disp>0?Math.max(0,Math.min(100,r.gasto/r.disp*100)):100;
-    const carryTxt=r.carry<0?` Já descontei ${brl(-r.carry)} que ficou negativo na semana anterior.`:(r.carry>0?` Inclui ${brl(r.carry)} trazidos para a primeira semana.`:"");
-    const fora=st&&mon<st?" Esta semana é anterior ao começo do controle, então não carrega saldo.":"";
-    hero=`<div class="note${neg?" neg":""}">${guilloche}<p>Semana ${r.idx} de ${r.n} de ${MESES[Number(r.k.slice(5))-1]}</p>
-      <div class="big num">${brl(r.saldo)}</div>
-      <p>${neg?"Passou do limite da semana.":"Ainda dá para gastar."} Gastos de ${brl(r.gasto)} de ${brl(r.disp)} disponíveis.${carryTxt}${fora}</p>
-      <div class="bar"><i style="width:${pct}%"></i></div></div>`;
+    const neg=r.saldo<0;const uso=r.disp>0?Math.max(0,Math.min(1,r.gasto/r.disp)):1;
+    const C=2*Math.PI*40;const off=C*(1-uso);
+    const porDia=!neg&&diasRest>0?r.saldo/diasRest:null;
+    const chips=[];
+    if(porDia!=null)chips.push(`${brl0(porDia)} por dia ${atual?`nos próximos ${diasRest} ${diasRest>1?"dias":"dia"}`:"na semana"}`);
+    chips.push(`gastou ${brl0(r.gasto)} de ${brl0(r.disp)}`);
+    if(passada)chips.push(neg?"semana fechou no negativo":"semana encerrada");
+    const notas=[];
+    if(r.carry<0)notas.push(`Já descontei ${brl(-r.carry)} que ficou negativo na semana anterior.`);
+    if(r.carry>0)notas.push(`Inclui ${brl(r.carry)} trazidos para a primeira semana.`);
+    if(st&&mon<st)notas.push("Esta semana é anterior ao começo do controle, então não carrega saldo.");
+    if(neg&&!passada)notas.push("O que passar será descontado da próxima semana.");
+    hero=`<div class="env${neg?" neg":""}">${guilloche}
+      <div class="env-top"><div><p class="env-label">Semana ${r.idx} de ${r.n} de ${mesTxt}</p>
+        <div class="big num">${brl(r.saldo)}</div>
+        <p class="env-sub">${neg?"passou do limite da semana":(passada?"sobrou nesta semana":"ainda dá para gastar")}</p></div>
+        <div class="ring" role="img" aria-label="${Math.round(uso*100)}% do envelope usado"><svg viewBox="0 0 92 92"><circle class="trk" cx="46" cy="46" r="40" fill="none" stroke-width="8"/><circle class="val" cx="46" cy="46" r="40" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg><span><span><b>${Math.round(uso*100)}%</b>usado</span></span></div></div>
+      <div class="env-chips">${chips.map(c=>`<span>${c}</span>`).join("")}</div>
+      ${notas.length?`<p class="env-note">${notas.join(" ")}</p>`:""}</div>`;
   }
   $("semHero").innerHTML=hero;
   // weeks strip
   const ws=weeksOfMonth(r.k);
   $("semWeeks").innerHTML=ws.map((w,i)=>{const x=saldoAte(w);const val=x.saldo==null?"—":brl0(x.saldo);
-    return `<button data-w="${ymd(w)}" class="${ymd(w)===ymd(mon)?"cur":""} ${x.saldo<0?"neg":""}">Semana ${i+1}<b class="num">${val}</b></button>`;}).join("");
+    const p=x.disp>0?Math.max(0,Math.min(100,x.gasto/x.disp*100)):(x.gasto>0?100:0);
+    return `<button data-w="${ymd(w)}" class="${ymd(w)===ymd(mon)?"cur":""} ${x.saldo<0?"neg":""}">Semana ${i+1}<b class="num">${val}</b><i style="--p:${p}%"></i></button>`;}).join("");
   // list
   const gs=gastosEntre(ymd(mon),ymd(addDays(mon,6))).sort((a,b)=>b.data.localeCompare(a.data)||(b.criado||0)-(a.criado||0));
+  $("semTotal").textContent=gs.length?`${gs.length} ${gs.length>1?"lançamentos":"lançamento"}, ${brl(sum(gs.map(g=>g.valor)))}`:"";
   $("semLista").innerHTML=gs.length?gs.map(g=>`<li>
+    <span class="ico" aria-hidden="true">${CAT_ICO[g.categoria]||"✨"}</span>
     <div class="li-main"><div class="t">${esc(g.descricao||g.categoria)}${g.pagoFatura?`<span class="pill">fatura paga</span>`:`<span class="pill unpaid">na fatura</span>`}</div>
     <div class="s">${esc(g.categoria)}, ${esc(g.quem||"")}, dia ${Number(g.data.slice(8))}</div></div>
     <span class="amt">${brl(g.valor)}</span>
     <label class="check" title="Paguei na fatura"><input type="checkbox" data-pago="${esc(g.id)}" ${g.pagoFatura?"checked":""} aria-label="Marcar como pago na fatura"></label>
-    <button class="x" data-delg="${esc(g.id)}" aria-label="Apagar gasto">✕</button></li>`).join(""):`<li class="empty">Nenhum gasto lançado nesta semana.</li>`;
+    <button class="x" data-delg="${esc(g.id)}" aria-label="Apagar gasto">✕</button></li>`).join(""):`<li class="empty">Nenhum gasto lançado nesta semana. Use o botão Gasto para lançar o primeiro.</li>`;
   const aberto=sum(S.gastos.filter(g=>!g.pagoFatura).map(g=>g.valor));
   $("semFatura").textContent=aberto>0?`Há ${brl(aberto)} em gastos semanais lançados no cartão que ainda não foram pagos na fatura.`:"Todos os gastos semanais lançados já foram pagos na fatura.";
 }
@@ -626,12 +751,12 @@ function renderGeral(){
   const ws=weeksOfMonth(k0);const gm=sum(gastosEntre(ymd(ws[0]),ymd(addDays(ws[ws.length-1],6))).map(g=>g.valor));
   const o0=orcamento(k0);const aberto=sum(S.gastos.filter(g=>!g.pagoFatura).map(g=>g.valor));
   $("geralAgoraT").textContent=`Agora, em ${MESES[today.getMonth()]}`;
-  $("geralAgora").innerHTML=`<div class="sum">
-    <span>Contas pagas</span><span class="r">${pagas.length} de ${cs.length}</span>
-    <span>Valor das contas pagas</span><span class="r">${brl0(sum(pagas.map(c=>c.valor)))} de ${brl0(sum(cs.map(c=>c.valor)))}</span>
-    <span>Gastos semanais no mês</span><span class="r" style="color:var(${o0!=null&&gm>o0?"--warn":"--ink"})">${brl0(gm)}${o0!=null?` de ${brl0(o0)}`:""}</span>
-    <span>Gastos semanais ainda não pagos na fatura</span><span class="r">${brl0(aberto)}</span>
-    <span>Parcelas e assinaturas na fatura</span><span class="r">${brl0(cartaoMes(k0))}</span></div>`;
+  const fatura=cartaoMes(k0);
+  $("geralAgora").innerHTML=`
+    <div class="kpi"><span>Contas pagas</span><b>${pagas.length} de ${cs.length}</b><small>${brl0(sum(pagas.map(c=>c.valor)))} de ${brl0(sum(cs.map(c=>c.valor)))}</small></div>
+    <div class="kpi"><span>Gasto nas semanas</span><b class="${o0!=null&&gm>o0?"neg":""}">${brl0(gm)}</b><small>${o0!=null?`de ${brl0(o0)} no mês`:"sem orçamento no mês"}</small></div>
+    <div class="kpi"><span>Fatura do cartão</span><b>${brl0(fatura+aberto)}</b><small>${brl0(fatura)} em parcelas${aberto?` e ${brl0(aberto)} de gastos a pagar`:""}</small></div>
+    <div class="kpi"><span>Sobra do mês</span><b class="${sobra(k0)<0?"neg":""}">${sobra(k0)!=null?brl0(sobra(k0)):"–"}</b><small>${o0!=null?`${brl0(o0/ws.length)} por semana`:"cadastre salário e contas"}</small></div>`;
   // ano
   const ano=ui.ano;$("gLabel").textContent=ano;
   const ms=Array.from({length:12},(_,i)=>`${ano}-${pad(i+1)}`);
@@ -706,7 +831,7 @@ function renderAno(){
   b+=`<tr><th scope="row">Salário</th>${T.map(t=>`<td class="c ed${cAg(t.k)}${t.sal?"":" vazio"}" data-sal="${t.k}">${t.sal?fmtN(t.sal):"–"}</td>`).join("")}<td class="c tot">${fmtN(salAno)}</td></tr>`;
   const grupoRows=(tipo,rot)=>{const rows=L[tipo];if(!rows.length)return "";let h=sec(rot);
     rows.forEach(r=>{const tt=sum(Object.values(r.cel).flat().map(c=>c.valor));
-      h+=`<tr><th scope="row" title="${esc(r.nome)}">${esc(r.nome)}</th>${ms.map(k=>{const cs=r.cel[k];
+      h+=`<tr><th scope="row" class="nome" data-linha="${tipo}|${slug(r.nome)}" title="${esc(r.nome)}">${esc(r.nome)}</th>${ms.map(k=>{const cs=r.cel[k];
         if(!cs)return `<td class="c ed vazio${cAg(k)}" data-tipo="${tipo}" data-nome="${esc(r.nome)}" data-ordem="${r.ordem}" data-mes="${k}">–</td>`;
         const v=sum(cs.map(c=>c.valor));const pago=cs.every(c=>c.paga);
         return `<td class="c ed${pago?" pago":""}${cAg(k)}" data-id="${esc(cs[0].id)}" title="${pago?"Paga":"Não paga"}">${fmtN(v)}</td>`;}).join("")}<td class="c tot">${fmtN(tt)}</td></tr>`;});
@@ -741,14 +866,15 @@ function renderAjustes(){
 
 function render(){
   const ready=["gastos","cartao","contas","meses","config"].every(x=>S.loaded.has(x));
-  $("status").textContent=db?(ready?"Tudo sincronizado entre vocês dois.":"Carregando os dados…"):"Sem conexão com os dados.";
+  $("status").textContent=db?((nomeUsuario?`Oi, ${nomeUsuario}. `:"")+(ready?"Tudo sincronizado.":"Carregando os dados…")):"Sem conexão com os dados.";
   renderQuem();renderSemana();renderGeral();renderAno();renderCartao();renderContas();renderAjustes();
 }
 
 /* ---------- events ---------- */
 function switchTab(t){ui.tab=t;document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===t)));
   ["semana","geral","ano","cartao","contas"].forEach(n=>$("tab-"+n).hidden=n!==t);
-  document.querySelector(".wrap").classList.toggle("largo",t==="ano");window.scrollTo(0,0);if(t==="ano")rolarAno();}
+  document.querySelector(".wrap").classList.toggle("largo",t==="ano");
+  $("fabGasto").hidden=t!=="semana"||document.body.classList.contains("deslogado");window.scrollTo(0,0);if(t==="ano")rolarAno();if(t==="geral"){const c=$("geralChart");if(ui.ano===String(today.getFullYear()))c.scrollLeft=Math.max(0,(today.getMonth()-3)*46*c.scrollWidth/(12*46+20));else c.scrollLeft=0;}}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
 $("gPrev").onclick=()=>{ui.ano=String(Number(ui.ano)-1);renderGeral();renderAno();};
 $("gNext").onclick=()=>{ui.ano=String(Number(ui.ano)+1);renderGeral();renderAno();};
@@ -770,6 +896,34 @@ function abrirEditor(e){
 const fecharEditor=()=>{edit=null;if(dlg.open)dlg.close();else dlg.removeAttribute("open");};
 $("anoTabela").addEventListener("click",abrirEditor);
 $("dlgCancelar").onclick=fecharEditor;
+/* apagar linha inteira */
+let linhaSel=null;const dlgL=$("dlgLinha");
+$("anoTabela").addEventListener("click",e=>{
+  const th=e.target.closest("th.nome");if(!th)return;
+  const [tipo,key]=th.dataset.linha.split("|");
+  const tipoDe=c=>["diversos","investimento"].includes(c.tipo)?c.tipo:"fixa";
+  const contas=S.contas.filter(c=>c.mes&&c.mes.slice(0,4)===ui.ano&&tipoDe(c)===tipo&&slug(c.nome)===key).sort((a,b)=>a.mes.localeCompare(b.mes));
+  if(!contas.length)return;
+  const meses=[...new Set(contas.map(c=>c.mes))];
+  linhaSel={contas};
+  $("dlgLinhaTitulo").textContent=`Apagar "${contas[0].nome}"`;
+  $("dlgLinhaInfo").textContent=`Essa conta aparece em ${meses.length} ${meses.length>1?"meses":"mês"} de ${ui.ano}. Escolha o período a apagar. Os outros meses continuam como estão.`;
+  const opts=meses.map(k=>`<option value="${k}">${mesCurto(k)}</option>`).join("");
+  $("dlgLinhaDe").innerHTML=opts;$("dlgLinhaAte").innerHTML=opts;
+  const agora=monthKey(today);
+  $("dlgLinhaDe").value=meses.find(k=>k>=agora)||meses[0];$("dlgLinhaAte").value=meses[meses.length-1];
+  if(typeof dlgL.showModal==="function")dlgL.showModal();else dlgL.setAttribute("open","");
+});
+const fecharLinha=()=>{linhaSel=null;if(dlgL.open)dlgL.close();else dlgL.removeAttribute("open");};
+$("dlgLinhaCancelar").onclick=fecharLinha;
+$("dlgLinhaApagar").onclick=async()=>{if(!linhaSel)return;
+  const de=$("dlgLinhaDe").value,ate=$("dlgLinhaAte").value;
+  if(ate<de){toast("O mês final vem antes do inicial.");return;}
+  const ids=linhaSel.contas.filter(c=>c.mes>=de&&c.mes<=ate).map(c=>c.id);
+  if(!confirm(`Apagar ${ids.length} ${ids.length>1?"lançamentos":"lançamento"} de ${mesCurto(de)} a ${mesCurto(ate)}? Isso não pode ser desfeito.`))return;
+  fecharLinha();
+  await write(()=>apagarVarios("contas",ids),`Linha apagada em ${ids.length} ${ids.length>1?"meses":"mês"}.`);
+};
 $("dlgValor").addEventListener("keydown",e=>{if(e.key==="Enter")$("dlgSalvar").click();});
 $("dlgSalvar").onclick=async()=>{if(!edit)return;const v=money($("dlgValor").value);
   if(!(v>=0)){toast("Digite um valor válido.");return;}const val=Math.round(v*100)/100;const ed=edit;fecharEditor();
@@ -801,6 +955,15 @@ $("wNext").onclick=()=>{ui.week=addDays(ui.week,7);renderSemana();};
 $("semWeeks").addEventListener("click",e=>{const b=e.target.closest("button[data-w]");if(b){ui.week=parse(b.dataset.w);renderSemana();}});
 $("gQuem").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;ui.quem=b.dataset.v;store.set("nm-quem",ui.quem);renderQuem();});
 $("gData").value=ymd(today);
+renderCats();
+$("gCats").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$("gCat").value=b.dataset.v;renderCats();});
+const sheet=$("sheetGasto");
+function abrirSheet(){if(!$("gData").value)$("gData").value=ymd(new Date());
+  if(typeof sheet.showModal==="function")sheet.showModal();else sheet.setAttribute("open","");setTimeout(()=>$("gValor").focus(),80);}
+function fecharSheet(){if(sheet.open)sheet.close();else sheet.removeAttribute("open");}
+$("fabGasto").onclick=abrirSheet;
+$("sheetFechar").onclick=fecharSheet;
+sheet.addEventListener("click",e=>{if(e.target===sheet)fecharSheet();});
 $("gAdd").onclick=async()=>{
   const v=money($("gValor").value);if(!(v>0)){toast("Digite o valor do gasto.");$("gValor").focus();return;}
   const data=$("gData").value||ymd(today);
@@ -808,7 +971,7 @@ $("gAdd").onclick=async()=>{
   $("gAdd").disabled=true;
   const ok=await write(()=>db.collection("gastos").doc(newId("g")).set(doc),"Gasto lançado.");
   $("gAdd").disabled=false;
-  if(ok){$("gValor").value="";$("gDesc").value="";$("gPago").checked=false;ui.week=mondayOf(parse(data));renderSemana();}
+  if(ok){$("gValor").value="";$("gDesc").value="";$("gPago").checked=false;ui.week=mondayOf(parse(data));renderSemana();fecharSheet();}
 };
 $("semLista").addEventListener("click",e=>{const d=e.target.closest("[data-delg]");if(d){if(confirm("Apagar este gasto?"))write(()=>db.doc("gastos/"+d.dataset.delg).delete(),"Gasto apagado.");}});
 $("semLista").addEventListener("change",e=>{const c=e.target.closest("[data-pago]");if(c)write(()=>db.doc("gastos/"+c.dataset.pago).update({pagoFatura:c.checked}));});
@@ -914,6 +1077,10 @@ onAuthStateChanged(auth,u=>{
   document.body.classList.toggle("deslogado",!logado);
   $("login").hidden=logado;$("userBar").hidden=!logado;
   $("userEmail").textContent=u?u.email:"";
+  nomeUsuario=u?((u.displayName||"").trim().split(/\s+/)[0]||""):"";
+  $("userAvatar").textContent=u?((u.displayName||u.email||"?").trim()[0]||"?").toUpperCase():"";
+  $("userBar").title=u?u.email:"";
+  $("fabGasto").hidden=!logado||ui.tab!=="semana";
   if(logado){conectar();}else{desconectar();$("status").textContent="Faça login para continuar.";}
   render();
   if(!logado)$("status").textContent="Faça login para continuar.";
