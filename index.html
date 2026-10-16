@@ -244,9 +244,9 @@ input.cbx:checked::after,#semLista input[type=checkbox]:checked::after{content:"
 
 
 /* ================= v3: Pix/cartão, relatório, contas no celular ================= */
-:root{--k0:#0D5C57;--k1:#2F55A4;--k2:#A86F00;--k3:#B3261E;--k4:#6D4AA8;--k5:#2E8B57;--k6:#C2410C;--k7:#64748B;--pix:#2F55A4;--pix-soft:#DCE5F7}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--k0:#4FB3A8;--k1:#7D9BE0;--k2:#D9A441;--k3:#E8776D;--k4:#B49AE6;--k5:#6FCF97;--k6:#F59E5B;--k7:#94A3B8;--pix:#9DB6EE;--pix-soft:#1F2C4A}}
-:root[data-theme="dark"]{--k0:#4FB3A8;--k1:#7D9BE0;--k2:#D9A441;--k3:#E8776D;--k4:#B49AE6;--k5:#6FCF97;--k6:#F59E5B;--k7:#94A3B8;--pix:#9DB6EE;--pix-soft:#1F2C4A}
+:root{--k0:#0D5C57;--k1:#2F55A4;--k2:#A86F00;--k3:#B3261E;--k4:#6D4AA8;--k5:#2E8B57;--k6:#C2410C;--k7:#64748B;--k8:#BE185D;--k9:#4D7C0F;--k10:#0E7490;--k11:#92400E;--demais:#B9C5C1;--pix:#2F55A4;--pix-soft:#DCE5F7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--k0:#4FB3A8;--k1:#7D9BE0;--k2:#D9A441;--k3:#E8776D;--k4:#B49AE6;--k5:#6FCF97;--k6:#F59E5B;--k7:#94A3B8;--k8:#F28DB8;--k9:#B5D36B;--k10:#5CC8DD;--k11:#D9A27A;--demais:#55645F;--pix:#9DB6EE;--pix-soft:#1F2C4A}}
+:root[data-theme="dark"]{--k0:#4FB3A8;--k1:#7D9BE0;--k2:#D9A441;--k3:#E8776D;--k4:#B49AE6;--k5:#6FCF97;--k6:#F59E5B;--k7:#94A3B8;--k8:#F28DB8;--k9:#B5D36B;--k10:#5CC8DD;--k11:#D9A27A;--demais:#55645F;--pix:#9DB6EE;--pix-soft:#1F2C4A}
 
 .topo-acoes{display:flex;align-items:center;gap:8px}
 .iconbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink)}
@@ -358,7 +358,7 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
 /* ===== impressão / PDF do relatório ===== */
 @media print{
   :root:root{--paper:#fff;--surface:#fff;--ink:#1B2A29;--muted:#5B6B69;--line:#D3DCD7;--petrol:#0D5C57;--petrol-soft:#D6E8E5;--warn:#B3261E;--amber:#A86F00;--amber-soft:#F5E7C8;
-    --k0:#0D5C57;--k1:#2F55A4;--k2:#A86F00;--k3:#B3261E;--k4:#6D4AA8;--k5:#2E8B57;--k6:#C2410C;--k7:#64748B;--pix:#2F55A4;--pix-soft:#DCE5F7;
+    --k0:#0D5C57;--k1:#2F55A4;--k2:#A86F00;--k3:#B3261E;--k4:#6D4AA8;--k5:#2E8B57;--k6:#C2410C;--k7:#64748B;--k8:#BE185D;--k9:#4D7C0F;--k10:#0E7490;--k11:#92400E;--demais:#B9C5C1;--pix:#2F55A4;--pix-soft:#DCE5F7;
     --c-fixa:#0D5C57;--c-diversos:#A86F00;--c-cartao:#B3261E;--c-investimento:#2F55A4;--c-sobra:#8DBFAE;--env:#0D5C57;--env-neg:#B3261E;color-scheme:light}
   body{background:#fff}
   nav.tabs,.fab,.topo-acoes,.toast,.acoes-rel,#pvSeg,#pmPrev,#pmNext,#userBar,.banner,dialog{display:none!important}
@@ -542,7 +542,7 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
     </div>
     <div class="full" id="gPagoBox"><label class="check"><input type="checkbox" id="gPago"> Já paguei esse valor na fatura</label></div>
     <div class="full"><label>Categoria</label><div class="chips" id="gCats"></div>
-      <select id="gCat" hidden><option>Mercado</option><option>Comer fora</option><option>Lazer</option><option>Farmácia</option><option>Transporte</option><option>Casa</option><option>Pets</option><option>Outros</option></select></div>
+      <select id="gCat" hidden><option>Mercado</option><option>Comer fora</option><option>Lazer</option><option>Farmácia</option><option>Transporte</option><option>Casa</option><option>Pets</option><option>Presentes e festas</option><option>Roupas e fardamento</option><option>Esporte e suplementos</option><option>Beleza e cuidados</option><option>Outros</option></select></div>
     <div class="full"><label for="gDesc">Descrição (opcional)</label><input id="gDesc" type="text" placeholder="Ex.: feira, pizza, remédio" autocomplete="off"></div>
     <div class="m2"><label for="gData">Data</label><input id="gData" type="date"></div>
     <div class="m2"><label>Quem gastou</label><div class="seg" id="gQuem"></div></div>
@@ -914,8 +914,9 @@ document.querySelectorAll("dialog.sheet").forEach(d=>d.addEventListener("click",
 document.querySelectorAll("[data-fechar]").forEach(b=>b.addEventListener("click",()=>fechar(b.dataset.fechar)));
 
 /* ---------- Semana ---------- */
-const CAT_ICO={"Mercado":"🛒","Comer fora":"🍽️","Lazer":"🎉","Farmácia":"💊","Transporte":"⛽","Casa":"🏠","Pets":"🐾","Outros":"✨"};
-const CAT_IDX=Object.fromEntries(Object.keys(CAT_ICO).map((c,i)=>[c,i]));
+/* 12 categorias. A cor de cada uma é fixa (CAT_IDX), então um gasto antigo nunca muda de cor; "Outros" fica por último e sempre cinza. */
+const CAT_ICO={"Mercado":"🛒","Comer fora":"🍽️","Lazer":"🎉","Farmácia":"💊","Transporte":"⛽","Casa":"🏠","Pets":"🐾","Presentes e festas":"🎁","Roupas e fardamento":"👕","Esporte e suplementos":"🏋️","Beleza e cuidados":"💈","Outros":"✨"};
+const CAT_IDX={"Mercado":0,"Comer fora":1,"Lazer":2,"Farmácia":3,"Transporte":4,"Casa":5,"Pets":6,"Outros":7,"Presentes e festas":8,"Roupas e fardamento":9,"Esporte e suplementos":10,"Beleza e cuidados":11};
 const chkBtn=(attr,id,on,label)=>`<button class="chk" ${attr}="${esc(id)}" aria-pressed="${!!on}" aria-label="${esc(label)}"><span></span></button>`;
 function renderCats(){const v=$("gCat").value;
   $("gCats").innerHTML=Object.keys(CAT_ICO).map(c=>`<button type="button" data-v="${c}" aria-pressed="${c===v}">${CAT_ICO[c]} ${c}</button>`).join("");}
@@ -1046,8 +1047,8 @@ function htmlRelatorio(R){
       return `<div class="semrow"><span>Semana ${s.idx} · ${dm(s.ini)} a ${dm(s.fim)}${s.status==="futura"?` <span class="muted">(ainda não começou)</span>`:""}</span><b>${brl(s.gasto)}${d!=null&&s.status!=="futura"?` <span class="${d>0?"neg":"muted"}">${d>0?"+":"−"}${brl0(Math.abs(d))}</span>`:""}</b></div>`;}).join("")}</div></div>`));
   /* categorias */
   const cats=R.gastos.porCategoria;
-  if(cats.length){let it=cats.slice(0,6).map(c=>({...c,cor:catCor(c.nome)}));const resto=cats.slice(6);
-    if(resto.length)it.push({nome:"Outras",valor:r2(sum(resto.map(c=>c.valor))),pct:sum(resto.map(c=>c.pct)),cor:"var(--k7)"});
+  if(cats.length){let it=cats.slice(0,8).map(c=>({...c,cor:catCor(c.nome)}));const resto=cats.slice(8);
+    if(resto.length)it.push({nome:"Demais categorias",valor:r2(sum(resto.map(c=>c.valor))),pct:sum(resto.map(c=>c.pct)),cor:"var(--demais)"});
     h.push(relSec("Para onde foi o dinheiro",`<div class="rel-card"><div class="donutbox">${svgDonut(it,tot)}<div class="leg">${it.map(c=>`<div class="legrow"><i style="background:${c.cor}"></i><span>${CAT_ICO[c.nome]||""} ${esc(c.nome)}</span><b>${brl0(c.valor)}</b><em>${Math.round(c.pct*100)}%</em></div>`).join("")}</div></div></div>`));
   }else h.push(relSec("Para onde foi o dinheiro",`<div class="rel-card"><p class="muted" style="margin:0">Nenhum gasto lançado neste período.</p></div>`));
   /* salário repartido */
