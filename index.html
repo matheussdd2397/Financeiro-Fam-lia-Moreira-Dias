@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nosso mês</title>
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#0D5C57">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A1F1D">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nosso mês">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Young+Serif&display=swap" rel="stylesheet">
@@ -666,6 +676,10 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
   <p class="small muted" style="margin:14px 0 0">Cada semana vai de segunda a domingo e pertence ao mês em que cai a sua quinta-feira. Por isso alguns meses têm 4 semanas e outros 5. Saldo negativo é descontado da semana seguinte.</p>
 </div></dialog>
 
+<script>
+/* registra o serviço que permite instalar o app (só em endereço https; roda mesmo que o resto falhe) */
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
 <script type="module">
 /* Firebase: biblioteca carregada direto dos servidores do Google */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
