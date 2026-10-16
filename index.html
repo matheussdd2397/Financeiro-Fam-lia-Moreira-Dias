@@ -373,6 +373,21 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
   details.rel-det summary{font-weight:700;color:var(--ink);list-style:none}
   details.rel-det summary::-webkit-details-marker{display:none}
 }
+
+/* ===== quanto falta em cada parcela ===== */
+.falt{display:inline-block;font-size:.74rem;font-weight:700;line-height:1.5;padding:1px 9px;border-radius:999px;background:var(--petrol-soft);color:var(--petrol);white-space:nowrap}
+.falt.perto{background:var(--amber-soft);color:var(--amber)}
+.falt.ultima{background:var(--petrol);color:var(--surface)}
+.falt.futura,.falt.ass{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.pbar{height:5px;border-radius:3px;background:var(--line);margin-top:7px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--petrol);border-radius:3px}
+.pbar.perto i{background:var(--amber)}
+.parc-mini{display:block;font-size:.7rem;font-weight:700;color:var(--petrol);margin-top:1px;white-space:nowrap}
+.parc-mini.perto{color:var(--amber)}
+.seg.segmini{margin:0 0 8px}
+.seg.segmini button{min-height:36px;font-size:.85rem;padding:6px 8px}
+.total-falta{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:8px;font-size:.9rem}
+.total-falta b{font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body class="deslogado">
@@ -482,7 +497,9 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
     </div>
 
     <div class="sec-head"><h2>Parcelas e assinaturas</h2><span id="cartListaTotal"></span></div>
+    <div class="seg segmini" id="cartOrd"><button type="button" data-v="valor" aria-pressed="true">Maior valor</button><button type="button" data-v="fim" aria-pressed="false">Acabam primeiro</button></div>
     <div class="card"><ul class="list" id="cartLista"></ul></div>
+    <div class="total-falta" id="cartFalta"></div>
     <p class="small muted" style="margin-top:6px">Toque em um item para corrigir o valor ou a parcela atual. É o que se faz todo mês ao conferir a fatura.</p>
 
     <div class="sec-head"><h2>Contas fixas pagas no cartão</h2><span id="cartFixasTotal"></span></div>
@@ -735,6 +752,14 @@ function itemNoMes(it,k){
   if(Array.isArray(it.valores))return Number(it.valores[i])||0;
   return i<(Number(it.total)||0)?(Number(it.valor)||0):0;
 }
+/* situação de um item parcelado no mês k: parcela atual (i), total (n) e quantas ainda faltam depois dela */
+function infoParcela(it,k){
+  if(it.tipo==="assinatura")return null;
+  const n=Array.isArray(it.valores)?it.valores.length:(Number(it.total)||0);const i=diffMonths(it.inicio,k)+1;
+  return {i,n,restam:i<1?n:Math.max(0,n-i),estado:i<1?"futura":(i>n?"fim":"ativa")};
+}
+/* soma do que ainda será cobrado depois do mês k */
+function valorRestante(it,k){if(it.tipo==="assinatura")return 0;const u=ultimoMes(it);let t=0;for(let m=addMonths(k,1);m<=u;m=addMonths(m,1))t+=itemNoMes(it,m);return t;}
 function ultimoMes(it){if(it.tipo==="assinatura")return it.fim||null;const n=Array.isArray(it.valores)?it.valores.length:Number(it.total)||0;return addMonths(it.inicio,n-1);}
 
 /* --- modelo do mês (D = {config, contas[], cartao[], gastos[], meses{}}) --- */
@@ -796,7 +821,7 @@ function relatorio(D,k,hojeIn){
   const agr=(arr,f)=>{const m=new Map();arr.forEach(g=>{const key=f(g);m.set(key,(m.get(key)||0)+g.valor);});
     return [...m.entries()].map(([nome,valor])=>({nome,valor:r2(valor),pct:total?valor/total:0})).sort((a,b)=>b.valor-a.valor);};
   const noCartao=gs.filter(g=>formaDe(g)==="cartao"),noPix=gs.filter(g=>formaDe(g)==="pix");
-  const itens=D.cartao.map(it=>({nome:it.nome,valor:itemNoMes(it,k)})).filter(x=>x.valor>0).sort((a,b)=>b.valor-a.valor);
+  const itens=D.cartao.map(it=>({nome:it.nome,valor:itemNoMes(it,k),info:infoParcela(it,k)})).filter(x=>x.valor>0).sort((a,b)=>b.valor-a.valor);
   const csm=contasMes(D,k);
   const fixasLista=csm.filter(c=>c.noCartao).map(c=>({nome:c.nome,valor:c.valor,paga:!!c.paga})).sort((a,b)=>b.valor-a.valor);
   const parcelas=r2(sum(itens.map(x=>x.valor))),fixas=r2(sum(fixasLista.map(x=>x.valor))),gastosCartao=r2(sum(noCartao.map(g=>g.valor)));
@@ -850,7 +875,7 @@ function resumoTexto(R){
   return L.join("\n");
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
-  tipoDe,formaDe,parcelado,itemNoMes,ultimoMes,contasMes,cartaoItens,contasNoCartao,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
+  tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,contasNoCartao,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
   semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
@@ -1063,7 +1088,7 @@ function htmlRelatorio(R){
     <div style="margin-top:10px">${legRows([{v:F.parcelas,cor:"var(--petrol)",label:`Parcelas e assinaturas (${F.itens.length})`},{v:F.fixas,cor:"var(--amber)",label:`Contas fixas no cartão (${F.fixasLista.length})`},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados no cartão"}])}</div>
     <div class="semrow" style="margin-top:6px"><span><b>Total previsto</b></span><b>${brl(F.total)}</b></div>
     <div class="semrow"><span>Gastos ainda não pagos na fatura</span><b class="${F.aPagar>0?"neg":""}">${brl(F.aPagar)}</b></div>
-    ${F.itens.length?`<details class="rel-det"><summary>Parcelas e assinaturas (${F.itens.length})</summary>${F.itens.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
+    ${F.itens.length?`<details class="rel-det"><summary>Parcelas e assinaturas (${F.itens.length})</summary>${F.itens.map(x=>`<div class="semrow"><span>${esc(x.nome)} ${x.info?(x.info.estado==="ativa"?`<span class="falt ${x.info.restam===0?"ultima":x.info.restam<=2?"perto":""}">${x.info.i}/${x.info.n} · ${textoFalta(x.info)}</span>`:""):`<span class="falt ass">mensal</span>`}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
     ${F.fixasLista.length?`<details class="rel-det"><summary>Contas fixas no cartão (${F.fixasLista.length})</summary>${F.fixasLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
     <p class="rel-note">Contado por mês de calendário. O cartão fecha no dia ${R.diaFechamento}, então compras feitas depois dele caem na fatura do mês seguinte e os valores podem se deslocar um pouco entre um mês e outro.</p></div>`));
   /* quem gastou e como pagou */
@@ -1154,8 +1179,8 @@ function renderAno(){
     <div class="kpi"><span>Sobra para as semanas</span><b class="${sobraAno<0?"neg":""}">${brl0(sobraAno)}</b><small>${qtd?`${pagas} de ${qtd} contas pagas`:"Nenhuma conta no ano"}</small></div>`;
   const head=`<thead><tr><th>${ano}</th>${ms.map((k,i)=>`<th class="${k===agora?"agora":""}">${MABR[i]}</th>`).join("")}<th>Total</th></tr></thead>`;
   const cAg=k=>k===agora?" agora":"";
-  const numRow=(rot,vals,cls="",neg=false,thx="")=>{const t=sum(vals.filter(v=>v!=null));
-    return `<tr class="${cls}"><th scope="row" ${thx} title="${esc(rot)}">${esc(rot)}</th>${vals.map((v,i)=>`<td class="c${cAg(ms[i])}${neg&&v<0?" neg":""}">${v==null?"–":fmtN(v)}</td>`).join("")}<td class="c tot${neg&&t<0?" neg":""}">${fmtN(t)}</td></tr>`;};
+  const numRow=(rot,vals,cls="",neg=false,thx="",extra="")=>{const t=sum(vals.filter(v=>v!=null));
+    return `<tr class="${cls}"><th scope="row" ${thx} title="${esc(rot)}">${esc(rot)}${extra}</th>${vals.map((v,i)=>`<td class="c${cAg(ms[i])}${neg&&v<0?" neg":""}">${v==null?"–":fmtN(v)}</td>`).join("")}<td class="c tot${neg&&t<0?" neg":""}">${fmtN(t)}</td></tr>`;};
   const sec=t=>`<tr class="sec"><th scope="row">${t}</th>${"<td></td>".repeat(13)}</tr>`;
   const subsec=t=>`<tr class="subsec"><th scope="row">${t}</th>${"<td></td>".repeat(13)}</tr>`;
   const linhaRows=rows=>rows.map(r=>{const tt=sum(Object.values(r.cel).flat().map(c=>c.valor));
@@ -1171,7 +1196,9 @@ function renderAno(){
   if(L.cartao.length||itensAno.length){b+=sec("💳 Cartão");
     if(L.cartao.length)b+=subsec("Contas fixas pagas no cartão")+linhaRows(L.cartao);
     if(itensAno.length){b+=subsec("Parcelas e assinaturas");
-      itensAno.forEach(it=>{b+=numRow(it.nome,ms.map(k=>{const v=ativo(k)?itemNoMes(it,k):0;return v>0?v:null;}),"ro",false,`class="nome" data-ci="${esc(it.id)}"`);});}
+      itensAno.forEach(it=>{const p=Core.infoParcela(it,agora);
+        const mini=p&&p.estado==="ativa"?`<span class="parc-mini ${p.restam<=2?"perto":""}">${p.i}/${p.n} · ${textoFalta(p)}</span>`:(p&&p.estado==="futura"?`<span class="parc-mini perto" style="color:var(--muted)">começa ${mesCurto(it.inicio)}</span>`:"");
+        b+=numRow(it.nome,ms.map(k=>{const v=ativo(k)?itemNoMes(it,k):0;return v>0?v:null;}),"ro",false,`class="nome" data-ci="${esc(it.id)}"`,mini);});}
     b+=numRow("Fatura prevista (cartão)",T.map(t=>t.cartao),"sub");}
   if(L.investimento.length){b+=sec("Investimento")+linhaRows(L.investimento)+numRow("Total investimento",T.map(t=>t.investimento),"sub");}
   b+=sec("Resultado");
@@ -1198,6 +1225,15 @@ function simItem(){
 const subItem=(it,cur)=>{if(it.tipo==="assinatura")return it.fim?`Assinatura até ${mesNome(it.fim)}`:"Assinatura mensal";
   const n=Array.isArray(it.valores)?it.valores.length:it.total;const i=diffMonths(it.inicio,cur)+1;
   return i<1?`${n} parcelas a partir de ${mesNome(it.inicio)}`:`Parcela ${i} de ${n}, termina em ${mesNome(ultimoMes(it))}`;};
+/* chip "faltam 5", barra de progresso e mini-linha, calculados para o mês k */
+const textoFalta=p=>p.estado==="futura"?"":(p.restam===0?"última parcela":(p.restam===1?"falta 1":`faltam ${p.restam}`));
+function chipParcela(it,k){const p=Core.infoParcela(it,k);
+  if(!p){if(!it.fim||k<it.inicio)return `<span class="falt ass">${it.fim?"começa "+mesCurto(it.inicio):"mensal"}</span>`;
+    const r=diffMonths(k,it.fim);return r<0?`<span class="falt ass">encerrada</span>`:(r===0?`<span class="falt ultima">última cobrança</span>`:`<span class="falt ass">até ${mesCurto(it.fim)}</span>`);}
+  if(p.estado==="futura")return `<span class="falt futura">começa ${mesCurto(it.inicio)}</span>`;
+  return `<span class="falt ${p.restam===0?"ultima":p.restam<=2?"perto":""}">${textoFalta(p)}</span>`;}
+function barraParcela(it,k){const p=Core.infoParcela(it,k);if(!p||p.estado!=="ativa")return "";
+  return `<div class="pbar ${p.restam<=2?"perto":""}" role="img" aria-label="Parcela ${p.i} de ${p.n}"><i style="width:${Math.min(100,p.i/p.n*100)}%"></i></div>`;}
 function renderCartao(){
   const cur=monthKey(today);const months=Array.from({length:15},(_,i)=>addMonths(cur,i));const M=metasDe();
   const sim=simItem();
@@ -1231,10 +1267,15 @@ function renderCartao(){
   const ks=Object.keys(fins).sort();
   $("cartLibera").innerHTML=ks.length?ks.map(k=>{const its=fins[k];const lib=sum(its.map(it=>itemNoMes(it,k)));
     return `<li><div class="li-main"><div class="t">Última cobrança em ${mesNome(k)}</div><div class="s">${its.map(i=>esc(i.nome)).join(", ")}</div></div><span class="amt">−${brl0(lib)}<span class="small muted" style="font-weight:400">/mês</span></span></li>`;}).join(""):`<li class="empty">Nenhuma parcela termina nos próximos meses.</li>`;
-  const ativos=S.cartao.filter(it=>{const u=ultimoMes(it);return !u||u>=cur;}).sort((a,b)=>itemNoMes(b,cur)-itemNoMes(a,cur)||String(a.nome).localeCompare(b.nome));
+  const ativos=S.cartao.filter(it=>{const u=ultimoMes(it);return !u||u>=cur;}).sort(ui.cs==="fim"
+    ?(a,b)=>(ultimoMes(a)||"9999-99").localeCompare(ultimoMes(b)||"9999-99")||itemNoMes(b,cur)-itemNoMes(a,cur)
+    :(a,b)=>itemNoMes(b,cur)-itemNoMes(a,cur)||String(a.nome).localeCompare(b.nome));
+  $("cartOrd").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===(ui.cs||"valor"))));
+  const faltaTotal=sum(S.cartao.map(it=>Core.valorRestante(it,cur)));
+  $("cartFalta").innerHTML=faltaTotal>0?`<span>Ainda falta cobrar nas parcelas, depois de ${MESES[today.getMonth()]}</span><b>${brl(faltaTotal)}</b>`:"";
   $("cartListaTotal").textContent=`${brl0(cartaoItens(cur))} em ${MESES[today.getMonth()]}`;
   $("cartLista").innerHTML=ativos.length?ativos.map(it=>{const v=itemNoMes(it,cur)||itemNoMes(it,it.inicio>cur?it.inicio:cur);
-    return `<li class="tap" data-ci="${esc(it.id)}"><div class="li-main"><div class="t">${esc(it.nome)}</div><div class="s">${subItem(it,cur)}${it.origemGasto?" · lançada como gasto":""}</div></div><span class="amt">${brl(v)}</span></li>`;}).join(""):`<li class="empty">Nada cadastrado no cartão.</li>`;
+    return `<li class="tap" data-ci="${esc(it.id)}"><div class="li-main"><div class="t">${esc(it.nome)} ${chipParcela(it,cur)}</div><div class="s">${subItem(it,cur)}${it.origemGasto?" · lançada como gasto":""}</div>${barraParcela(it,cur)}</div><span class="amt">${brl(v)}</span></li>`;}).join(""):`<li class="empty">Nada cadastrado no cartão.</li>`;
   const fx=contasMes(cur).filter(c=>c.noCartao);
   $("cartFixasTotal").textContent=fx.length?`${brl0(sum(fx.map(c=>c.valor)))} em ${MESES[today.getMonth()]}`:"";
   $("cartFixas").innerHTML=fx.length?fx.map(c=>`<li class="tap" data-c="${esc(c.id)}"><div class="li-main"><div class="t">${esc(c.nome)}</div><div class="s">${TIPO_ROT[tipoDe(c)]}, todo mês</div></div><span class="amt">${brl(c.valor)}</span></li>`).join(""):`<li class="empty">Nenhuma conta fixa marcada como paga no cartão em ${MESES[today.getMonth()]}. Marque pela aba Contas ou Ano.</li>`;
@@ -1263,7 +1304,7 @@ function renderContas(){
   grupos.forEach(([t,arr])=>{const v=arr.filter(passa);if(!v.length)return;
     h+=`<div class="grupo"><div class="grupo-h"><h2>${t}</h2><span>${brl0(sum(v.map(c=>c.valor)))}</span></div><div class="card"><ul class="list">${v.map(linha).join("")}</ul></div></div>`;});
   const itens=S.cartao.filter(it=>itemNoMes(it,k)>0).sort((a,b)=>itemNoMes(b,k)-itemNoMes(a,k));
-  if(ui.cf==="todas"&&itens.length)h+=`<div class="grupo ro"><div class="grupo-h"><h2>💳 Parcelas e assinaturas</h2><span>${brl0(sum(itens.map(it=>itemNoMes(it,k))))}</span></div><div class="card"><ul class="list">${itens.map(it=>`<li class="tap conta" data-ci="${esc(it.id)}"><span class="chk-vazio"></span><div class="li-main"><div class="t">${esc(it.nome)}</div><div class="s">${subItem(it,k)}</div></div><span class="amt">${brl(itemNoMes(it,k))}</span></li>`).join("")}</ul></div></div><p class="rel-note" style="margin:6px 2px 0">São cobradas na fatura do cartão. Toque em um item para corrigir.</p>`;
+  if(ui.cf==="todas"&&itens.length)h+=`<div class="grupo ro"><div class="grupo-h"><h2>💳 Parcelas e assinaturas</h2><span>${brl0(sum(itens.map(it=>itemNoMes(it,k))))}</span></div><div class="card"><ul class="list">${itens.map(it=>`<li class="tap conta" data-ci="${esc(it.id)}"><span class="chk-vazio"></span><div class="li-main"><div class="t">${esc(it.nome)} ${chipParcela(it,k)}</div><div class="s">${subItem(it,k)}</div>${barraParcela(it,k)}</div><span class="amt">${brl(itemNoMes(it,k))}</span></li>`).join("")}</ul></div></div><p class="rel-note" style="margin:6px 2px 0">São cobradas na fatura do cartão. Toque em um item para corrigir.</p>`;
   if(!h)h=cs.length?`<div class="card" style="margin-top:16px"><p class="empty" style="margin:0">${ui.cf==="pagar"?"Nenhuma conta pendente. 🎉":"Nenhuma conta paga ainda."}</p></div>`
     :`<div class="card" style="margin-top:16px"><p class="empty" style="margin:0">Nenhuma conta neste mês. Use o botão <b>+ Conta</b>${contasMes(addMonths(k,-1)).length?" ou copie as do mês anterior em “Mais ações”":""}.</p></div>`;
   $("contasGrupos").innerHTML=h;
@@ -1505,6 +1546,7 @@ $("sInicio").value=addMonths(monthKey(today),1);
 $("sAdd").onclick=async()=>{const it=simItem();if(!it||!it.nome)return;
   const ok=await write(()=>db.collection("cartao").doc(newId(slug(it.nome))).set(it),"Adicionado ao cartão.");
   if(ok){$("sNome").value="";$("sValor").value="";renderCartao();}};
+$("cartOrd").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;ui.cs=b.dataset.v;renderCartao();});
 $("cartLista").addEventListener("click",e=>{const li=e.target.closest("li[data-ci]");if(li)abrirCartaoItem(li.dataset.ci);});
 $("cartFixas").addEventListener("click",e=>{const li=e.target.closest("li[data-c]");if(li)abrirConta({modo:"editar",id:li.dataset.c});});
 
