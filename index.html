@@ -398,6 +398,21 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
 .seg.segmini button{min-height:36px;font-size:.85rem;padding:6px 8px}
 .total-falta{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:8px;font-size:.9rem}
 .total-falta b{font-variant-numeric:tabular-nums}
+
+/* ===== quanto ainda dá para parcelar ===== */
+.folga-topo{padding:12px 14px;border-radius:12px;background:var(--petrol-soft);color:var(--petrol)}
+.folga-topo.ruim{background:var(--warn-soft);color:var(--warn)}
+.folga-topo span{font-size:.82rem;opacity:.9}
+.folga-topo b{display:block;font-family:var(--serif);font-weight:400;font-size:1.45rem;line-height:1.2;margin:1px 0 3px}
+.folga-topo small{display:block;font-size:.8rem;color:var(--ink);opacity:.8}
+.folga-row{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line)}
+.folga-row:first-of-type{margin-top:10px}
+.folga-row>b{flex:0 0 40px;font-size:1.05rem}
+.folga-row small{display:block;color:var(--muted);font-size:.82rem}
+.folga-row.ruim small{color:var(--warn)}
+.vered{padding:9px 11px;border-radius:10px;margin:8px 0 0;font-size:.88rem;line-height:1.4}
+.vered.ok{background:var(--petrol-soft);color:var(--petrol)}
+.vered.ruim{background:var(--warn-soft);color:var(--warn)}
 </style>
 </head>
 <body class="deslogado">
@@ -451,7 +466,7 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
       <div id="geralHero"></div>
       <h2>Para onde vai o salário</h2>
       <div class="chart" id="geralChart"></div>
-      <div class="legend"><span><i style="background:var(--c-fixa)"></i>Despesas fixas</span><span><i style="background:var(--c-diversos)"></i>Gastos diversos</span><span><i style="background:var(--c-cartao)"></i>Cartão</span><span><i style="background:var(--c-investimento)"></i>Investimento</span><span><i style="background:var(--c-sobra)"></i>Sobra para o mês</span></div>
+      <div class="legend"><span><i style="background:var(--c-fixa)"></i>Despesas fixas</span><span><i style="background:var(--c-diversos)"></i>Gastos diversos</span><span><i style="background:var(--c-cartao)"></i>Cartão (parcelas)</span><span><i style="background:var(--c-investimento)"></i>Investimento</span><span><i style="background:var(--c-sobra)"></i>Sobra para o mês</span></div>
       <p class="small muted" style="margin-top:6px">O número embaixo de cada mês é a parte do salário que sobra para os gastos semanais. Toque em um mês para abrir o relatório dele.</p>
       <h2>Real comparado com as metas</h2>
       <div class="card tblwrap" id="geralMetas"></div>
@@ -488,10 +503,11 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
   <!-- CARTÃO -->
   <section id="tab-cartao" hidden>
     <div id="cartHero"></div>
+    <div id="cartFolga"></div>
     <h2>Fatura prevista, mês a mês</h2>
     <div class="chart" id="cartChart"></div>
-    <div class="legend"><span><i style="background:var(--petrol)"></i>Dentro da meta</span><span><i style="background:var(--warn)"></i>Acima da meta</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta</span></div>
-    <p class="small muted" style="margin-top:6px">Inclui parcelas, assinaturas e as contas fixas pagas no cartão. Não inclui os gastos semanais, que vocês pagam na fatura conforme usam.</p>
+    <div class="legend"><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Acima da meta</span><span><i style="background:var(--amber)"></i>Contas fixas no cartão</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta</span></div>
+    <p class="small muted" style="margin-top:6px">Verde ou vermelho: parcelas e assinaturas, comparadas com a meta do cartão. Em âmbar: contas fixas pagas no cartão, que somam na fatura mas contam em Despesas fixas. Não inclui os gastos semanais, que vocês pagam na fatura conforme usam.</p>
 
     <h2>Antes de parcelar, simule</h2>
     <div class="card">
@@ -566,6 +582,7 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
         <div class="m2"><label for="gPrimeira">Primeira parcela na fatura de</label><input id="gPrimeira" type="month"></div>
       </div>
       <p class="small muted" id="gParcInfo" style="margin:8px 0 0"></p>
+      <p class="vered" id="gParcVered" hidden></p>
     </div>
     <div class="full" id="gPagoBox"><label class="check"><input type="checkbox" id="gPago"> Já paguei esse valor na fatura</label></div>
     <div class="full"><label>Categoria</label><div class="chips" id="gCats"></div>
@@ -655,7 +672,7 @@ details.mais summary{color:var(--muted);padding:8px 0;font-size:.9rem}
   <div class="grid metas">
     <div><label for="mtFixa">Fixas</label><input id="mtFixa" type="number" min="0" max="100" inputmode="numeric"></div>
     <div><label for="mtDiversos">Diversos</label><input id="mtDiversos" type="number" min="0" max="100" inputmode="numeric"></div>
-    <div><label for="mtCartao">Cartão</label><input id="mtCartao" type="number" min="0" max="100" inputmode="numeric"></div>
+    <div><label for="mtCartao">Cartão (parcelas)</label><input id="mtCartao" type="number" min="0" max="100" inputmode="numeric"></div>
     <div><label for="mtInvest">Investimento</label><input id="mtInvest" type="number" min="0" max="100" inputmode="numeric"></div>
     <div><label for="mtSobra">Sobra</label><input id="mtSobra" type="number" min="0" max="100" inputmode="numeric"></div>
     <div class="soma"><label>Soma</label><b id="mtSoma">100%</b></div>
@@ -810,14 +827,40 @@ const diaFechamento=D=>{const f=Number((D.config||{}).diaFechamento);return f>=1
 function primeiraParcela(D,dataStr){const d=parse(dataStr);return addMonths(monthKey(d),d.getDate()<=diaFechamento(D)?1:2);}
 
 /* --- divisão do salário (sem contar nada duas vezes) --- */
-const SERIES=[["fixa","Despesas fixas"],["diversos","Gastos diversos"],["cartao","Cartão"],["investimento","Investimento"],["sobra","Sobra para o mês"]];
+const SERIES=[["fixa","Despesas fixas"],["diversos","Gastos diversos"],["cartao","Cartão (parcelas)"],["investimento","Investimento"],["sobra","Sobra para o mês"]];
 const METAS_PADRAO={fixa:35,diversos:15,cartao:15,investimento:20,sobra:15};
 function metasDe(D){const c=D.config||{};const m=c.metas||{};const o={};Object.keys(METAS_PADRAO).forEach(x=>{o[x]=Number(m[x]??METAS_PADRAO[x]);});if(c.metaCartao!=null)o.cartao=Number(m.cartao??c.metaCartao);return o;}
 function quebraMes(D,k){
   const sal=salario(D,k);const cs=contasMes(D,k);if(!sal||!cs.length)return null;
-  const por=t=>sum(cs.filter(c=>tipoDe(c)===t&&!c.noCartao).map(c=>c.valor));
-  const q={sal,fixa:por("fixa"),diversos:por("diversos"),investimento:por("investimento"),cartao:fatura(D,k)};
+  /* conta fixa continua sendo fixa mesmo paga no cartão; "Cartão" aqui são só as parcelas e assinaturas */
+  const por=t=>sum(cs.filter(c=>tipoDe(c)===t).map(c=>c.valor));
+  const q={sal,fixa:por("fixa"),diversos:por("diversos"),investimento:por("investimento"),cartao:cartaoItens(D,k)};
   q.sobra=sal-q.fixa-q.diversos-q.investimento-q.cartao;return q;
+}
+
+/* --- folga do cartão: quanto ainda cabe em parcelas antes de passar da meta do cartão --- */
+const mediana=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):null;};
+/* salário do mês; se o mês ainda não tem salário, usa o salário "típico" (mediana), para o 13º não inflar a conta */
+function salarioBase(D,k){const s=salario(D,k);if(s)return s;return mediana(Object.values(D.meses).map(m=>Number(m.salario)).filter(v=>v>0));}
+function folgaCartao(D,k,extra){
+  const sal=salarioBase(D,k);if(!sal)return null;
+  const meta=metasDe(D).cartao,limite=sal*meta/100,comprometido=cartaoItens(D,k,extra);
+  return {sal,meta,limite,comprometido,folga:limite-comprometido};
+}
+/* maior parcela que cabe em n vezes: nenhum mês do prazo pode passar da meta, então vale o pior mês */
+function capacidade(D,inicio,n){
+  let min=Infinity,pior=null;
+  for(let i=0;i<n;i++){const k=addMonths(inicio,i),f=folgaCartao(D,k);if(!f)return null;if(f.folga<min){min=f.folga;pior=k;}}
+  const parcelaMax=Math.max(0,Math.floor(min));
+  return {parcelaMax,totalMax:parcelaMax*n,piorMes:pior,folgaMin:min};
+}
+/* se hoje não cabe, em que mês a primeira parcela precisa cair para caber (parcela de pelo menos R$ 50) */
+function quandoCabe(D,inicio,n,alcance){for(let i=1;i<=(alcance||18);i++){const s=addMonths(inicio,i),c=capacidade(D,s,n);if(c&&c.parcelaMax>=50)return {inicio:s,...c};}return null;}
+/* avalia uma compra específica: passa da meta em quantos meses e qual é o pior */
+function veredito(D,inicio,n,valorParcela){
+  const extra={tipo:"parcela",valor:valorParcela,total:n,inicio};let pior=null,acima=0;
+  for(let i=0;i<n;i++){const k=addMonths(inicio,i),f=folgaCartao(D,k,extra);if(!f)return null;if(f.folga<0)acima++;if(!pior||f.folga<pior.folga)pior={k,folga:f.folga,limite:f.limite};}
+  return {cabe:acima===0,mesesAcima:acima,pior,meta:metasDe(D).cartao};
 }
 
 /* --- relatório do mês --- */
@@ -866,7 +909,7 @@ function relatorio(D,k,hojeIn){
   if(fat.total>0)d.push({t:aPagar>0?"alerta":"ok",x:`Fatura prevista do cartão: ${brl(fat.total)}. `+(aPagar>0?`${brl(aPagar)} dos gastos lançados ainda não foram pagos na fatura.`:`Todos os gastos lançados no cartão já foram pagos na fatura.`)});
   if(parceladas.length)d.push({t:"info",x:`${parceladas.length===1?"Compra parcelada":"Compras parceladas"} no mês: ${parceladas.length} (${brl(sum(parceladas.map(p=>p.total)))} no total). As parcelas entram na fatura dos próximos meses e não contam no orçamento da semana.`});
   if(contas.qtd)d.push({t:contas.pendentes.length?"info":"ok",x:contas.pendentes.length?`Faltam pagar ${contas.pendentes.length} de ${contas.qtd} contas (${brl(sum(contas.pendentes.map(c=>c.valor)))}).`:`Todas as ${contas.qtd} contas do mês estão pagas.`});
-  if(metas){const mc=metas.find(m=>m.id==="cartao");if(mc&&mc.ruim)d.push({t:"alerta",x:`O cartão representa ${Math.round(mc.pct)}% do salário, acima da meta de ${mc.meta}%.`});
+  if(metas){const mc=metas.find(m=>m.id==="cartao");if(mc&&mc.ruim)d.push({t:"alerta",x:`As parcelas e assinaturas do cartão representam ${Math.round(mc.pct)}% do salário, acima da meta de ${mc.meta}%.`});
     const mi=metas.find(m=>m.id==="investimento");if(mi&&!mi.ruim&&mi.valor>0)d.push({t:"ok",x:`Investimento planejado de ${brl(mi.valor)} (${Math.round(mi.pct)}% do salário, meta de ${mi.meta}%).`});}
   if(anterior&&!parcial&&anterior.pct!=null)d.push({t:"info",x:`Os gastos das semanas ficaram ${Math.abs(Math.round(anterior.pct*100))}% ${anterior.delta>=0?"maiores":"menores"} que em ${MESES[Number(anterior.mes.slice(5))-1]} (${brl(anterior.gasto)}).`});
   return {mes:k,titulo:mesNome(k),parcial,tipo:parcial?"parcial":"final",ate:ymd(hoje),diaFechamento:diaFechamento(D),
@@ -890,7 +933,7 @@ function resumoTexto(R){
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
   tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,contasNoCartao,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
-  semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
+  salarioBase,folgaCartao,capacidade,quandoCabe,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
 
@@ -979,6 +1022,16 @@ function renderVezes(){
   $("gParcInfo").textContent=(v>0&&n>=2&&p)
     ?`${n}x de ${brl(v/n)}, de ${mesCurto(p)} a ${mesCurto(addMonths(p,n-1))}. Digite o valor total da compra. Não entra no orçamento da semana: as parcelas entram sozinhas na fatura desses meses.`
     :"Digite o valor total da compra e em quantas vezes. As parcelas entram sozinhas na fatura dos próximos meses.";
+  /* cabe ou não na meta do cartão? */
+  const ver=$("gParcVered");ver.hidden=true;
+  if(v>0&&n>=2&&p){const r=Core.veredito(S,p,n,r2(v/n));
+    if(r){let t,cls;
+      if(r.cabe){cls="ok";t=`✓ Cabe na meta de ${r.meta}% do cartão. No pior mês (${mesCurto(r.pior.k)}) ainda sobram ${brl0(r.pior.folga)}.`;}
+      else{cls="ruim";const c=Core.capacidade(S,p,n);
+        t=`✗ Passa da meta de ${r.meta}% do cartão em ${plural(r.mesesAcima,"mês","meses")}; no pior (${mesCurto(r.pior.k)}) fica ${brl0(-r.pior.folga)} acima.`;
+        if(c&&c.parcelaMax>=1)t+=` Para caber em ${n}x, a parcela máxima é ${brl0(c.parcelaMax)} (compra de até ${brl0(c.totalMax)}).`;
+        else{const q=Core.quandoCabe(S,p,n);t+=q?` Se a 1ª parcela cair em ${mesCurto(q.inicio)} ou depois, cabe até ${brl0(q.parcelaMax)} por parcela.`:" Não há folga nos próximos meses.";}}
+      ver.className="vered "+cls;ver.textContent=t;ver.hidden=false;}}
 }
 function renderSemana(){
   const mon=ui.week;$("wLabel").textContent=rangeLabel(mon);
@@ -1095,7 +1148,7 @@ function htmlRelatorio(R){
     h.push(relSec("Para onde vai o salário",`<div class="rel-card">${stackBar(R.metas.map(m=>({v:m.valor,cor:`var(--c-${m.id})`,label:m.nome})),"Divisão do salário")}
       <div class="legend" style="margin-top:10px">${R.metas.map(m=>`<span><i style="background:var(--c-${m.id})"></i>${m.nome}</span>`).join("")}</div>
       <div class="tblwrap" style="margin-top:10px"><table class="tbl compact"><thead><tr><th>Destino</th><th>R$</th><th>%</th><th>Meta</th></tr></thead><tbody>${R.metas.map(m=>`<tr><td>${m.nome}</td><td>${brl0(m.valor)}</td><td class="${m.ruim?"ruim":"boa"}">${Math.round(m.pct)}%</td><td>${m.meta}%</td></tr>`).join("")}</tbody></table></div>
-      <p class="rel-note">Salário de ${brl0(sal)}. Em vermelho, o que está pior que a meta. As contas fixas pagas no cartão contam em "Cartão".</p></div>`));}
+      <p class="rel-note">Salário de ${brl0(sal)}. Em vermelho, o que está pior que a meta. As contas fixas pagas no cartão contam em Despesas fixas; "Cartão" são só as parcelas e assinaturas.</p></div>`));}
   /* fatura */
   const F=R.fatura;
   if(F.total>0)h.push(relSec("Fatura do cartão (prevista)",`<div class="rel-card">${stackBar([{v:F.parcelas,cor:"var(--petrol)",label:"Parcelas e assinaturas"},{v:F.fixas,cor:"var(--amber)",label:"Contas fixas no cartão"},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados"}],"Composição da fatura")}
@@ -1166,21 +1219,20 @@ function linhasAno(ano){
     if(!m.has(key))m.set(key,{key,nome:c.nome,tipo:t,cartao:cart,ordem:c.ordem??99,cel:{}});
     const L=m.get(key);L.ordem=Math.min(L.ordem,c.ordem??99);(L.cel[c.mes]=L.cel[c.mes]||[]).push(c);});
   const ord=a=>a.sort((x,y)=>x.ordem-y.ordem||x.nome.localeCompare(y.nome));const all=[...m.values()];
-  return {fixa:ord(all.filter(l=>!l.cartao&&l.tipo==="fixa")),diversos:ord(all.filter(l=>!l.cartao&&l.tipo==="diversos")),
-    investimento:ord(all.filter(l=>!l.cartao&&l.tipo==="investimento")),cartao:ord(all.filter(l=>l.cartao))};
+  return {fixa:ord(all.filter(l=>l.tipo==="fixa")),diversos:ord(all.filter(l=>l.tipo==="diversos")),investimento:ord(all.filter(l=>l.tipo==="investimento"))};
 }
 function renderAno(){
   const ano=ui.ano;$("aLabel").textContent=ano;
   const ms=Array.from({length:12},(_,i)=>`${ano}-${pad(i+1)}`);const agora=monthKey(today);
   const L=linhasAno(ano);
   const itensAno=S.cartao.filter(it=>ms.some(k=>ativo(k)&&itemNoMes(it,k)>0)).sort((a,b)=>sum(ms.map(k=>itemNoMes(b,k)))-sum(ms.map(k=>itemNoMes(a,k))));
-  const T=ms.map(k=>{const cs=contasMes(k);const por=t=>sum(cs.filter(c=>tipoDe(c)===t&&!c.noCartao).map(c=>c.valor));
+  const T=ms.map(k=>{const cs=contasMes(k);const por=t=>sum(cs.filter(c=>tipoDe(c)===t).map(c=>c.valor));
     const sal=salario(k);const fixa=por("fixa"),diversos=por("diversos"),investimento=por("investimento");
-    const itens=ativo(k)?cartaoItens(k):0,fixasCartao=contasNoCartao(k),cartao=itens+fixasCartao;
+    const itens=ativo(k)?cartaoItens(k):0,fixasCartao=contasNoCartao(k),cartao=itens,faturaPrev=itens+fixasCartao;
     const desp=fixa+diversos+investimento+cartao;const sb=sal?sal-desp:null;const o=orcamento(k);const n=weeksOfMonth(k).length;
     const ws=weeksOfMonth(k);const gasto=sum(Core.gastosDoMes(S,k).map(g=>g.valor));
     const nz=v=>v?v:null;
-    return {k,sal,fixa:nz(fixa),diversos:nz(diversos),investimento:nz(investimento),cartao:nz(cartao),fixasCartao:nz(fixasCartao),itens:nz(itens),desp:nz(desp),sobra:sb,
+    return {k,sal,fixa:nz(fixa),diversos:nz(diversos),investimento:nz(investimento),cartao:nz(cartao),fatura:nz(faturaPrev),fixasCartao:nz(fixasCartao),itens:nz(itens),desp:nz(desp),sobra:sb,
       porSemana:o!=null?o/n:null,n,gasto,qtd:cs.length,pagas:cs.filter(c=>c.paga).length};});
   const comSal=T.filter(t=>t.sal);const tot=f=>sum(comSal.map(t=>t[f]||0));
   const salAno=tot("sal"),despAno=tot("desp"),invAno=tot("investimento"),sobraAno=sum(comSal.map(t=>t.sobra||0));
@@ -1198,7 +1250,7 @@ function renderAno(){
   const sec=t=>`<tr class="sec"><th scope="row">${t}</th>${"<td></td>".repeat(13)}</tr>`;
   const subsec=t=>`<tr class="subsec"><th scope="row">${t}</th>${"<td></td>".repeat(13)}</tr>`;
   const linhaRows=rows=>rows.map(r=>{const tt=sum(Object.values(r.cel).flat().map(c=>c.valor));
-    return `<tr><th scope="row" class="nome" data-linha="${esc(r.key)}" title="${esc(r.nome)}">${esc(r.nome)}</th>${ms.map(k=>{const cs=r.cel[k];
+    return `<tr><th scope="row" class="nome" data-linha="${esc(r.key)}" title="${esc(r.nome)}">${r.cartao?`<span class="cardmark">💳</span>`:""}${esc(r.nome)}</th>${ms.map(k=>{const cs=r.cel[k];
       if(!cs)return `<td class="c ed vazio${cAg(k)}" data-tipo="${r.tipo}" data-nome="${esc(r.nome)}" data-cartao="${r.cartao?1:0}" data-ordem="${r.ordem}" data-mes="${k}">–</td>`;
       const v=sum(cs.map(c=>c.valor));const pago=cs.every(c=>c.paga);
       return `<td class="c ed${pago?" pago":""}${cAg(k)}" data-id="${esc(cs[0].id)}" title="${pago?"Paga":"Não paga"}">${fmtN(v)}</td>`;}).join("")}<td class="c tot">${fmtN(tt)}</td></tr>`;}).join("");
@@ -1207,13 +1259,12 @@ function renderAno(){
   b+=`<tr><th scope="row">Salário</th>${T.map(t=>`<td class="c ed${cAg(t.k)}${t.sal?"":" vazio"}" data-sal="${t.k}">${t.sal?fmtN(t.sal):"–"}</td>`).join("")}<td class="c tot">${fmtN(salAno)}</td></tr>`;
   if(L.fixa.length){b+=sec("Despesas fixas")+linhaRows(L.fixa)+numRow("Total despesas fixas",T.map(t=>t.fixa),"sub");}
   if(L.diversos.length){b+=sec("Gastos diversos")+linhaRows(L.diversos)+numRow("Total gastos diversos",T.map(t=>t.diversos),"sub");}
-  if(L.cartao.length||itensAno.length){b+=sec("💳 Cartão");
-    if(L.cartao.length)b+=subsec("Contas fixas pagas no cartão")+linhaRows(L.cartao);
-    if(itensAno.length){b+=subsec("Parcelas e assinaturas");
-      itensAno.forEach(it=>{const p=Core.infoParcela(it,agora);
-        const mini=p&&p.estado==="ativa"?`<span class="parc-mini ${p.restam<=2?"perto":""}">${p.i}/${p.n} · ${textoFalta(p)}</span>`:(p&&p.estado==="futura"?`<span class="parc-mini perto" style="color:var(--muted)">começa ${mesCurto(it.inicio)}</span>`:"");
-        b+=numRow(it.nome,ms.map(k=>{const v=ativo(k)?itemNoMes(it,k):0;return v>0?v:null;}),"ro",false,`class="nome" data-ci="${esc(it.id)}"`,mini);});}
-    b+=numRow("Fatura prevista (cartão)",T.map(t=>t.cartao),"sub");}
+  if(itensAno.length){b+=sec("💳 Cartão (parcelas e assinaturas)");
+    itensAno.forEach(it=>{const p=Core.infoParcela(it,agora);
+      const mini=p&&p.estado==="ativa"?`<span class="parc-mini ${p.restam<=2?"perto":""}">${p.i}/${p.n} · ${textoFalta(p)}</span>`:(p&&p.estado==="futura"?`<span class="parc-mini perto" style="color:var(--muted)">começa ${mesCurto(it.inicio)}</span>`:"");
+      b+=numRow(it.nome,ms.map(k=>{const v=ativo(k)?itemNoMes(it,k):0;return v>0?v:null;}),"ro",false,`class="nome" data-ci="${esc(it.id)}"`,mini);});
+    b+=numRow("Total cartão (parcelas)",T.map(t=>t.cartao),"sub");
+    if(T.some(t=>t.fixasCartao))b+=numRow("Fatura prevista (inclui fixas 💳)",T.map(t=>t.fatura),"ro");}
   if(L.investimento.length){b+=sec("Investimento")+linhaRows(L.investimento)+numRow("Total investimento",T.map(t=>t.investimento),"sub");}
   b+=sec("Resultado");
   b+=numRow("Total que sai do salário",T.map(t=>t.desp),"res");
@@ -1248,23 +1299,39 @@ function chipParcela(it,k){const p=Core.infoParcela(it,k);
   return `<span class="falt ${p.restam===0?"ultima":p.restam<=2?"perto":""}">${textoFalta(p)}</span>`;}
 function barraParcela(it,k){const p=Core.infoParcela(it,k);if(!p||p.estado!=="ativa")return "";
   return `<div class="pbar ${p.restam<=2?"perto":""}" role="img" aria-label="Parcela ${p.i} de ${p.n}"><i style="width:${Math.min(100,p.i/p.n*100)}%"></i></div>`;}
-function renderCartao(){
+/* quadro "Quanto ainda dá para parcelar" */
+function renderFolga(){
+  const ini=Core.primeiraParcela(S,ymd(new Date())),f0=Core.folgaCartao(S,ini),M=metasDe();
+  if(!f0){$("cartFolga").innerHTML=`<h2>Quanto ainda dá para parcelar</h2><div class="rel-card"><p class="muted" style="margin:0">Cadastre o salário dos próximos meses (aba Contas) para eu calcular quanto cabe na meta do cartão.</p></div>`;return;}
+  const linhas=[3,6,10,12].map(n=>{const c=Core.capacidade(S,ini,n);
+    if(c&&c.parcelaMax>=1)return `<div class="folga-row"><b>${n}x</b><div><span>até <b>${brl0(c.parcelaMax)}</b> por parcela</span><small>compra de até ${brl0(c.totalMax)} no total</small></div></div>`;
+    const q=Core.quandoCabe(S,ini,n);
+    return `<div class="folga-row ruim"><b>${n}x</b><div><span>${q?`a partir de ${mesCurto(q.inicio)}: até <b>${brl0(q.parcelaMax)}</b> por parcela`:"sem folga nos próximos 18 meses"}</span><small>${q?`compra de até ${brl0(q.totalMax)}. `:""}Com a 1ª parcela em ${mesCurto(ini)} não cabe.</small></div></div>`;}).join("");
+  $("cartFolga").innerHTML=`<h2>Quanto ainda dá para parcelar</h2><div class="rel-card">
+    <div class="folga-topo ${f0.folga>=0?"":"ruim"}"><span>Fatura de ${mesCurto(ini)}, a primeira que uma compra de hoje alcança</span>
+      <b>${f0.folga>=0?`folga de ${brl0(f0.folga)}`:`${brl0(-f0.folga)} acima da meta`}</b>
+      <small>Meta de ${M.cartao}% do salário: ${brl0(f0.limite)}. Já comprometido em parcelas e assinaturas: ${brl0(f0.comprometido)}.</small></div>
+    <p class="small muted" style="margin:12px 0 0">Maior parcela que cabe, por número de vezes, sem passar da meta em nenhum mês:</p>${linhas}
+    <p class="rel-note">Vale o pior mês de cada prazo, porque a parcela é igual todo mês. As parcelas e assinaturas que já existem estão descontadas. Meses sem salário cadastrado usam o salário típico. Para testar uma compra específica, use o simulador logo abaixo.</p></div>`;
+}
+function renderCartao(){renderFolga();
   const cur=monthKey(today);const months=Array.from({length:15},(_,i)=>addMonths(cur,i));const M=metasDe();
   const sim=simItem();
-  const vals=months.map(k=>fatura(k));const simv=months.map(k=>sim?itemNoMes(sim,k):0);
+  const vals=months.map(k=>cartaoItens(k)),fxv=months.map(k=>contasNoCartao(k));const simv=months.map(k=>sim?itemNoMes(sim,k):0);
   const metas=months.map(k=>{const s=salarioRef(k);return s?s*M.cartao/100:null;});
-  const c0=vals[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(c0/s0*100):null;
+  const c0=vals[0]+fxv[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(vals[0]/s0*100):null;
   $("cartHero").innerHTML=`<div class="note${p0!=null&&p0>M.cartao?" neg":""}">${guilloche}<p>Fatura prevista de ${MESES[today.getMonth()]}</p>
-    <div class="big num">${brl0(c0)}</div><p>${brl0(cartaoItens(cur))} em parcelas e assinaturas + ${brl0(contasNoCartao(cur))} em contas fixas pagas no cartão. ${p0!=null?`${p0}% do salário, com meta de ${M.cartao}%.`:"Cadastre o salário do mês para ver a porcentagem."}</p></div>`;
+    <div class="big num">${brl0(c0)}</div><p>${brl0(vals[0])} em parcelas e assinaturas${p0!=null?` (${p0}% do salário, meta de ${M.cartao}%)`:""} + ${brl0(fxv[0])} em contas fixas pagas no cartão, que contam em Despesas fixas.${p0==null?" Cadastre o salário do mês para ver a porcentagem.":""}</p></div>`;
   const W=months.length*44+40,H=230,top=26,bot=34,ch=H-top-bot;
-  const max=Math.max(1,...vals.map((v,i)=>v+simv[i]),...metas.filter(Boolean));
+  const max=Math.max(1,...vals.map((v,i)=>v+simv[i]+fxv[i]),...metas.filter(Boolean));
   const y=v=>top+ch-(v/max)*ch;let g="";
-  months.forEach((k,i)=>{const x=30+i*44;const v=vals[i],sv=simv[i],m=metas[i];const over=m!=null&&v+sv>m;
+  months.forEach((k,i)=>{const x=30+i*44;const v=vals[i],sv=simv[i],fx=fxv[i],m=metas[i];const over=m!=null&&v+sv>m;const tot=v+sv+fx;
     g+=`<rect x="${x}" y="${y(v)}" width="28" height="${Math.max(0,top+ch-y(v))}" rx="4" fill="var(${over?"--warn":"--petrol"})"><title>${mesCurto(k)}: ${brl(v)}</title></rect>`;
     if(sv>0)g+=`<rect x="${x}" y="${y(v+sv)}" width="28" height="${Math.max(0,y(v)-y(v+sv))}" rx="4" fill="var(--sim)"><title>Simulado: ${brl(sv)}</title></rect>`;
+    if(fx>0)g+=`<rect x="${x}" y="${y(tot)}" width="28" height="${Math.max(0,y(v+sv)-y(tot))}" rx="4" fill="var(--amber)" opacity=".85"><title>Contas fixas no cartão: ${brl(fx)}</title></rect>`;
     if(m!=null)g+=`<line x1="${x-6}" x2="${x+34}" y1="${y(m)}" y2="${y(m)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
-    const lbl=(v+sv)>=1000?((v+sv)/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":Math.round(v+sv);
-    g+=`<text x="${x+14}" y="${y(v+sv)-6}" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="var(--sans)">${lbl}</text>`;
+    const lbl=tot>=1000?(tot/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":Math.round(tot);
+    g+=`<text x="${x+14}" y="${y(tot)-6}" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="var(--sans)">${lbl}</text>`;
     g+=`<text x="${x+14}" y="${H-12}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--sans)">${mesCurto(k)}</text>`;});
   $("cartChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fatura prevista do cartão nos próximos 15 meses">${g}</svg>`;
   if(sim){
@@ -1273,6 +1340,8 @@ function renderCartao(){
     const sob=piores.map(x=>({k:x.k,s:sobra(x.k,sim)})).filter(x=>x.s!=null);
     let t=ui.sTipo==="assinatura"?`<p>${brl(sim.valor)} por mês a partir de ${mesNome(sim.inicio)}.</p>`:`<p>${sim.total}x de ${brl(sim.valor)}, de ${mesNome(sim.inicio)} a ${mesNome(ultimoMes(sim))}.</p>`;
     t+=acima.length?`<p style="color:var(--warn)">O cartão fica acima da meta em ${plural(acima.length,"mês","meses")}, chegando a ${brl0(Math.max(...acima.map(x=>x.tot)))} em ${mesCurto(acima.reduce((a,b)=>b.tot>a.tot?b:a).k)}.</p>`:`<p style="color:var(--petrol)">O cartão continua dentro da meta em todos os meses afetados.</p>`;
+    if(acima.length&&ui.sTipo!=="assinatura"){const c=Core.capacidade(S,sim.inicio,sim.total);
+      t+=c&&c.parcelaMax>=1?`<p class="small">Para caber na meta, a parcela máxima em ${sim.total}x seria ${brl0(c.parcelaMax)} (compra de até ${brl0(c.totalMax)}).</p>`:`<p class="small">Nesse prazo não há folga na meta. ${(()=>{const q=Core.quandoCabe(S,sim.inicio,sim.total);return q?`Com a 1ª parcela em ${mesCurto(q.inicio)} ou depois, cabe até ${brl0(q.parcelaMax)} por parcela.`:"";})()}</p>`;}
     if(sob.length)t+=`<p class="small muted">Orçamento semanal depois da compra: ${sob.slice(0,3).map(x=>`${mesCurto(x.k)} ${brl0(x.s)} (${brl0(x.s/weeksOfMonth(x.k).length)} por semana)`).join("; ")}.</p>`;
     $("simResultado").innerHTML=t;
   }else $("simResultado").innerHTML=`<p class="small muted">Preencha o valor para ver o impacto no gráfico e no orçamento das semanas.</p>`;
@@ -1312,8 +1381,8 @@ function renderContas(){
   const nPagar=cs.filter(c=>!c.paga).length;
   $("contasFiltro").innerHTML=[["todas",`Todas (${cs.length})`],["pagar",`A pagar (${nPagar})`],["pagas",`Pagas (${cs.length-nPagar})`]].map(([v,t])=>`<button type="button" data-f="${v}" aria-pressed="${ui.cf===v}">${t}</button>`).join("");
   const passa=c=>ui.cf==="todas"||(ui.cf==="pagar"?!c.paga:!!c.paga);
-  const linha=c=>`<li class="tap conta ${c.paga?"paga":""}" data-c="${esc(c.id)}">${chkBtn("data-cpaga",c.id,c.paga,`Marcar ${c.nome} como paga`)}<div class="li-main"><div class="t">${esc(c.nome)}</div></div><span class="amt">${brl(c.valor)}</span></li>`;
-  const grupos=[["Despesas fixas",cs.filter(c=>tipoDe(c)==="fixa"&&!c.noCartao)],["💳 Fixas pagas no cartão",cs.filter(c=>c.noCartao)],["Gastos diversos",cs.filter(c=>tipoDe(c)==="diversos"&&!c.noCartao)],["Investimento",cs.filter(c=>tipoDe(c)==="investimento"&&!c.noCartao)]];
+  const linha=c=>`<li class="tap conta ${c.paga?"paga":""}" data-c="${esc(c.id)}">${chkBtn("data-cpaga",c.id,c.paga,`Marcar ${c.nome} como paga`)}<div class="li-main"><div class="t">${esc(c.nome)}${c.noCartao?`<span class="pill card">💳 cartão</span>`:""}</div></div><span class="amt">${brl(c.valor)}</span></li>`;
+  const grupos=[["Despesas fixas",cs.filter(c=>tipoDe(c)==="fixa")],["Gastos diversos",cs.filter(c=>tipoDe(c)==="diversos")],["Investimento",cs.filter(c=>tipoDe(c)==="investimento")]];
   let h="";
   grupos.forEach(([t,arr])=>{const v=arr.filter(passa);if(!v.length)return;
     h+=`<div class="grupo"><div class="grupo-h"><h2>${t}</h2><span>${brl0(sum(v.map(c=>c.valor)))}</span></div><div class="card"><ul class="list">${v.map(linha).join("")}</ul></div></div>`;});
