@@ -452,6 +452,8 @@ table.pl tr.tot td{font-weight:800;font-size:1rem;padding:12px}
 table.pl tr.ro td{color:var(--muted)}
 table.pl td.neg{color:var(--warn)}
 .linkbtn{background:none;border:0;color:var(--petrol);font:inherit;font-weight:700;padding:8px 0;cursor:pointer}
+
+.legend i.sw-folga{background:repeating-linear-gradient(45deg,var(--petrol-soft) 0 3px,var(--petrol) 3px 4px);outline:1px dashed var(--petrol);outline-offset:-1px}
 </style>
 </head>
 <body class="deslogado">
@@ -545,8 +547,8 @@ table.pl td.neg{color:var(--warn)}
     <div id="cartFolga"></div>
     <h2>Fatura prevista, mês a mês</h2>
     <div class="chart" id="cartChart"></div>
-    <div class="legend"><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Acima da meta</span><span><i style="background:var(--amber)"></i>Assinaturas e contas fixas no cartão</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta</span></div>
-    <p class="small muted" style="margin-top:6px">O número em cima de cada barra é o total da fatura prevista. Embaixo de cada mês, os valores seguem as cores: parcelas (verde ou vermelho, comparadas com a meta do cartão), assinaturas e contas fixas pagas no cartão (âmbar, que somam na fatura mas contam em Despesas fixas) e compra simulada (roxo). Não inclui os gastos semanais, que vocês pagam na fatura conforme usam.</p>
+    <div class="legend"><span><i class="sw-folga"></i>Cabe até a meta (+)</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Parcelas acima da meta</span><span><i style="background:var(--amber)"></i>Assinaturas e contas fixas no cartão</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta das parcelas</span></div>
+    <p class="small muted" style="margin-top:6px">Cada barra é a fatura prevista do mês, de baixo para cima: assinaturas e contas fixas (âmbar), parcelas (verde se dentro da meta, vermelho se acima) e, tracejado, quanto ainda cabe em parcelas até a linha da meta. Embaixo do mês, os valores seguem a mesma ordem: quanto cabe (+), parcelas e âmbar. Uma parcela cabe na meta se couber no tracejado de todos os meses do prazo. O número em cima é o total da fatura, sem os gastos semanais.</p>
 
     <h2>Antes de parcelar, simule</h2>
     <div class="card">
@@ -1522,25 +1524,33 @@ function renderCartao(){renderFolga();
   const c0=vals[0]+fxv[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(vals[0]/s0*100):null;
   $("cartHero").innerHTML=`<div class="note${p0!=null&&p0>M.cartao?" neg":""}">${guilloche}<p>Fatura prevista de ${MESES[today.getMonth()]}</p>
     <div class="big num">${brl0(c0)}</div><p>${brl0(vals[0])} em parcelas${p0!=null?` (${p0}% do salário, meta de ${M.cartao}%)`:""} + ${brl0(fxv[0])} em assinaturas e contas fixas pagas no cartão, que contam em Despesas fixas.${p0==null?" Cadastre o salário do mês para ver a porcentagem.":""}</p></div>`;
-  const temSim=simv.some(v=>v>0)||simA.some(v=>v>0),nl=2+(temSim?1:0);
+  /* barra do mês, de baixo para cima: assinaturas e contas fixas (âmbar) → parcelas (verde/vermelho) → quanto ainda cabe até a meta (tracejado).
+     A linha da meta de cada mês fica em (âmbar + meta), porque a meta vale só para as parcelas. */
+  const temSim=simv.some(v=>v>0)||simA.some(v=>v>0),nl=3+(temSim?1:0);
   const W=months.length*44+40,top=26,ch=170,bot=24+nl*14,H=top+ch+bot;
   const kfmt=v=>v>=1000?(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":String(Math.round(v));
-  const max=Math.max(1,...vals.map((v,i)=>v+simv[i]+fxv[i]+simA[i]),...metas.filter(Boolean));
-  const y=v=>top+ch-(v/max)*ch;let g="";
-  months.forEach((k,i)=>{const x=30+i*44;const v=vals[i],sv=simv[i],fx=fxv[i],sa=simA[i],m=metas[i];const over=m!=null&&v+sv>m;const topo=v+sv+fx,tot=topo+sa;
-    g+=`<rect x="${x}" y="${y(v)}" width="28" height="${Math.max(0,top+ch-y(v))}" rx="4" fill="var(${over?"--warn":"--petrol"})"><title>${mesCurto(k)}: ${brl(v)}</title></rect>`;
-    if(sv>0)g+=`<rect x="${x}" y="${y(v+sv)}" width="28" height="${Math.max(0,y(v)-y(v+sv))}" rx="4" fill="var(--sim)"><title>Simulado: ${brl(sv)}</title></rect>`;
-    if(fx>0)g+=`<rect x="${x}" y="${y(topo)}" width="28" height="${Math.max(0,y(v+sv)-y(topo))}" rx="4" fill="var(--amber)" opacity=".85"><title>Assinaturas e contas fixas no cartão: ${brl(fx)}</title></rect>`;
-    if(sa>0)g+=`<rect x="${x}" y="${y(tot)}" width="28" height="${Math.max(0,y(topo)-y(tot))}" rx="4" fill="var(--sim)"><title>Assinatura simulada: ${brl(sa)}</title></rect>`;
-    if(m!=null)g+=`<line x1="${x-6}" x2="${x+34}" y1="${y(m)}" y2="${y(m)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
-    const lbl=tot>=1000?(tot/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":Math.round(tot);
-    g+=`<text x="${x+14}" y="${y(tot)-6}" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="var(--sans)">${lbl}</text>`;
-    /* embaixo de cada mês: o mês e os valores, na mesma cor de cada pedaço da barra */
+  const max=Math.max(1,...months.map((k,i)=>fxv[i]+simA[i]+Math.max(vals[i]+simv[i],metas[i]||0)));
+  const y=v=>top+ch-(v/max)*ch;
+  let g=`<defs><pattern id="folgaHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--petrol-soft)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--petrol)" stroke-width="1.6" opacity=".6"/></pattern></defs>`;
+  const seg=(x,de,ate,fill,tit,extra="")=>ate>de?`<rect x="${x}" y="${y(ate)}" width="28" height="${Math.max(0,y(de)-y(ate))}" rx="3" fill="${fill}" ${extra}><title>${tit}</title></rect>`:"";
+  months.forEach((k,i)=>{const x=30+i*44;const v=vals[i],sv=simv[i],fx=fxv[i],sa=simA[i],m=metas[i];
+    const base=fx+sa,par=v+sv,over=m!=null&&par>m,folga=m!=null?Math.max(0,m-par):0,tot=base+par;
+    g+=seg(x,0,fx,"var(--amber)",`${mesCurto(k)}, assinaturas e contas fixas no cartão: ${brl(fx)}`,'opacity=".85"');
+    g+=seg(x,fx,base,"var(--sim)",`Assinatura simulada: ${brl(sa)}`);
+    g+=seg(x,base,base+v,`var(${over?"--warn":"--petrol"})`,`${mesCurto(k)}, parcelas: ${brl(v)}${m!=null?` (meta ${brl0(m)})`:""}`);
+    g+=seg(x,base+v,base+par,"var(--sim)",`Parcela simulada: ${brl(sv)}`);
+    if(folga>0)g+=seg(x,base+par,base+par+folga,"url(#folgaHatch)",`${mesCurto(k)}: cabem mais ${brl(folga)} em parcelas sem passar da meta`,'stroke="var(--petrol)" stroke-width="1" stroke-dasharray="3 2" class="folga"');
+    if(m!=null)g+=`<line class="meta" x1="${x-6}" x2="${x+34}" y1="${y(base+m)}" y2="${y(base+m)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    const topoVis=Math.max(tot,m!=null?base+m:0);
+    g+=`<text x="${x+14}" y="${y(topoVis)-6}" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="var(--sans)">${kfmt(tot)}</text>`;
+    /* embaixo do mês: os valores na MESMA ordem da barra, de cima para baixo */
     const yb=top+ch+16;
     g+=`<text x="${x+14}" y="${yb}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--sans)">${mesCurto(k)}</text>`;
     const lin=(n,txt,cor)=>`<text x="${x+14}" y="${yb+14*n}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${cor}" font-family="var(--sans)">${txt}</text>`;
-    g+=lin(1,v>0?kfmt(v):"–",`var(${over?"--warn":"--petrol"})`)+lin(2,fx>0?kfmt(fx):"–","var(--amber)");
-    if(temSim)g+=lin(3,(sv+sa)>0?kfmt(sv+sa):"–","var(--sim)");});
+    let n=1;g+=lin(n++,folga>0?"+"+kfmt(folga):"–","var(--petrol)");
+    if(temSim)g+=lin(n++,(sv+sa)>0?kfmt(sv+sa):"–","var(--sim)");
+    g+=lin(n++,v>0?kfmt(v):"–",`var(${over?"--warn":"--petrol"})`);
+    g+=lin(n++,fx>0?kfmt(fx):"–","var(--amber)");});
   $("cartChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fatura prevista do cartão nos próximos 15 meses">${g}</svg>`;
   if(sim){
     const piores=months.map((k,i)=>({k,tot:vals[i]+simv[i],m:metas[i],sv:simv[i]})).filter(x=>x.sv>0);
