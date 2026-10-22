@@ -547,8 +547,8 @@ table.pl td.neg{color:var(--warn)}
     <div id="cartFolga"></div>
     <h2>Fatura prevista, mês a mês</h2>
     <div class="chart" id="cartChart"></div>
-    <div class="legend"><span><i class="sw-folga"></i>Cabe até a meta (+)</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Parcelas acima da meta</span><span><i style="background:var(--amber)"></i>Assinaturas e contas fixas no cartão</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta das parcelas</span></div>
-    <p class="small muted" style="margin-top:6px">Cada barra é a fatura prevista do mês, de baixo para cima: assinaturas e contas fixas (âmbar), parcelas (verde se dentro da meta, vermelho se acima) e, tracejado, quanto ainda cabe em parcelas até a linha da meta. Embaixo do mês, os valores seguem a mesma ordem: quanto cabe (+), parcelas e âmbar. Uma parcela cabe na meta se couber no tracejado de todos os meses do prazo. O número em cima é o total da fatura, sem os gastos semanais.</p>
+    <div class="legend"><span><i class="sw-folga"></i>Cabe até a meta (+)</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Parcelas acima da meta</span><span><i style="background:var(--k7)"></i>Gastos diversos no cartão</span><span><i style="background:var(--amber)"></i>Assinaturas e contas fixas no cartão</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta das parcelas</span></div>
+    <p class="small muted" style="margin-top:6px">Cada barra é a fatura prevista do mês, de baixo para cima: assinaturas e contas fixas (âmbar), gastos diversos pagos no cartão (cinza), parcelas (verde se dentro da meta, vermelho se acima) e, tracejado, quanto ainda cabe em parcelas até a linha da meta. Embaixo do mês, os valores seguem a mesma ordem: quanto cabe (+), parcelas, cinza e âmbar. Uma parcela cabe na meta se couber no tracejado de todos os meses do prazo. O número em cima é o total da fatura, sem os gastos semanais.</p>
 
     <h2>Antes de parcelar, simule</h2>
     <div class="card">
@@ -569,7 +569,7 @@ table.pl td.neg{color:var(--warn)}
     <div class="total-falta" id="cartFalta"></div>
     <p class="small muted" style="margin-top:6px">Toque em um item para corrigir o valor ou a parcela atual. É o que se faz todo mês ao conferir a fatura.</p>
 
-    <div class="sec-head"><h2>Contas fixas pagas no cartão</h2><span id="cartFixasTotal"></span></div>
+    <div class="sec-head"><h2>Contas pagas no cartão</h2><span id="cartFixasTotal"></span></div>
     <div class="card"><ul class="list" id="cartFixas"></ul></div>
 
     <h2>Quando as parcelas terminam</h2>
@@ -915,6 +915,9 @@ const ehAssinatura=it=>it.tipo==="assinatura";
 const assinaturasMes=(D,k)=>sum(D.cartao.filter(ehAssinatura).map(it=>itemNoMes(it,k)));
 const parcelasMes=(D,k,extra)=>sum(D.cartao.filter(it=>!ehAssinatura(it)).map(it=>itemNoMes(it,k)))+(extra&&!ehAssinatura(extra)?itemNoMes(extra,k):0);
 const contasNoCartao=(D,k)=>sum(contasMes(D,k).filter(c=>c.noCartao).map(c=>c.valor));
+/* contas pagas no cartão, separadas pelo grupo: fixas (contam em Despesas fixas) e as outras, como gastos diversos (contam no grupo delas) */
+const contasCartaoFixas=(D,k)=>sum(contasMes(D,k).filter(c=>c.noCartao&&tipoDe(c)==="fixa").map(c=>c.valor));
+const contasCartaoOutras=(D,k)=>sum(contasMes(D,k).filter(c=>c.noCartao&&tipoDe(c)!=="fixa").map(c=>c.valor));
 /* fatura prevista = parcelas e assinaturas + contas fixas que são pagas no cartão */
 const fatura=(D,k,extra)=>cartaoItens(D,k,extra)+contasNoCartao(D,k);
 const salario=(D,k)=>{const m=D.meses[k];return m&&m.salario?Number(m.salario):null;};
@@ -1077,10 +1080,11 @@ function relatorio(D,k,hojeIn){
   const noCartao=gs.filter(g=>formaDe(g)==="cartao"),noPix=gs.filter(g=>formaDe(g)==="pix");
   const itens=D.cartao.map(it=>({nome:it.nome,valor:itemNoMes(it,k),info:infoParcela(it,k)})).filter(x=>x.valor>0).sort((a,b)=>b.valor-a.valor);
   const csm=contasMes(D,k);
-  const fixasLista=csm.filter(c=>c.noCartao).map(c=>({nome:c.nome,valor:c.valor,paga:!!c.paga})).sort((a,b)=>b.valor-a.valor);
-  const parcelas=r2(sum(itens.map(x=>x.valor))),fixas=r2(sum(fixasLista.map(x=>x.valor))),gastosCartao=r2(sum(noCartao.map(g=>g.valor)));
+  const noCart=csm.filter(c=>c.noCartao).map(c=>({nome:c.nome,valor:c.valor,paga:!!c.paga,tipo:tipoDe(c)})).sort((a,b)=>b.valor-a.valor);
+  const fixasLista=noCart.filter(x=>x.tipo==="fixa"),divLista=noCart.filter(x=>x.tipo!=="fixa");
+  const parcelas=r2(sum(itens.map(x=>x.valor))),fixas=r2(sum(fixasLista.map(x=>x.valor))),divCartao=r2(sum(divLista.map(x=>x.valor))),gastosCartao=r2(sum(noCartao.map(g=>g.valor)));
   const aPagar=r2(sum(noCartao.filter(g=>!g.pagoFatura).map(g=>g.valor)));
-  const fat={parcelas,fixas,gastos:gastosCartao,total:r2(parcelas+fixas+gastosCartao),aPagar,itens,fixasLista};
+  const fat={parcelas,fixas,div:divCartao,gastos:gastosCartao,total:r2(parcelas+fixas+divCartao+gastosCartao),aPagar,itens,fixasLista,divLista};
   const contas={qtd:csm.length,pagas:csm.filter(c=>c.paga).length,total:r2(sum(csm.map(c=>c.valor))),pago:r2(sum(csm.filter(c=>c.paga).map(c=>c.valor))),
     pendentes:csm.filter(c=>!c.paga).sort((a,b)=>b.valor-a.valor).map(c=>({nome:c.nome,valor:c.valor,noCartao:!!c.noCartao,tipo:tipoDe(c)}))};
   const q=quebraMes(D,k);const M=metasDe(D);
@@ -1129,7 +1133,7 @@ function resumoTexto(R){
   return L.join("\n");
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
-  tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,ehAssinatura,assinaturasMes,parcelasMes,contasNoCartao,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
+  tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,ehAssinatura,assinaturasMes,parcelasMes,contasNoCartao,contasCartaoFixas,contasCartaoOutras,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
   metasPatrimonio,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
@@ -1347,15 +1351,16 @@ function htmlRelatorio(R){
     h.push(relSec("Para onde vai o salário",`<div class="rel-card">${stackBar(R.metas.map(m=>({v:m.valor,cor:`var(--c-${m.id})`,label:m.nome})),"Divisão do salário")}
       <div class="legend" style="margin-top:10px">${R.metas.map(m=>`<span><i style="background:var(--c-${m.id})"></i>${m.nome}</span>`).join("")}</div>
       <div class="tblwrap" style="margin-top:10px"><table class="tbl compact"><thead><tr><th>Destino</th><th>R$</th><th>%</th><th>Meta</th></tr></thead><tbody>${R.metas.map(m=>`<tr><td>${m.nome}</td><td>${brl0(m.valor)}</td><td class="${m.ruim?"ruim":"boa"}">${Math.round(m.pct)}%</td><td>${m.meta}%</td></tr>`).join("")}</tbody></table></div>
-      <p class="rel-note">Salário de ${brl0(sal)}. Em vermelho, o que está pior que a meta. As assinaturas e as contas fixas pagas no cartão contam em Despesas fixas; "Cartão" são só as parcelas.</p></div>`));}
+      <p class="rel-note">Salário de ${brl0(sal)}. Em vermelho, o que está pior que a meta. As assinaturas e as contas fixas pagas no cartão contam em Despesas fixas, e os gastos diversos pagos no cartão contam em Gastos diversos; "Cartão" são só as parcelas.</p></div>`));}
   /* fatura */
   const F=R.fatura;
-  if(F.total>0)h.push(relSec("Fatura do cartão (prevista)",`<div class="rel-card">${stackBar([{v:F.parcelas,cor:"var(--petrol)",label:"Parcelas e assinaturas"},{v:F.fixas,cor:"var(--amber)",label:"Contas fixas no cartão"},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados"}],"Composição da fatura")}
-    <div style="margin-top:10px">${legRows([{v:F.parcelas,cor:"var(--petrol)",label:`Parcelas e assinaturas (${F.itens.length})`},{v:F.fixas,cor:"var(--amber)",label:`Contas fixas no cartão (${F.fixasLista.length})`},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados no cartão"}])}</div>
+  if(F.total>0)h.push(relSec("Fatura do cartão (prevista)",`<div class="rel-card">${stackBar([{v:F.parcelas,cor:"var(--petrol)",label:"Parcelas e assinaturas"},{v:F.fixas,cor:"var(--amber)",label:"Contas fixas no cartão"},{v:F.div,cor:"var(--k7)",label:"Gastos diversos no cartão"},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados"}],"Composição da fatura")}
+    <div style="margin-top:10px">${legRows([{v:F.parcelas,cor:"var(--petrol)",label:`Parcelas e assinaturas (${F.itens.length})`},{v:F.fixas,cor:"var(--amber)",label:`Contas fixas no cartão (${F.fixasLista.length})`},...(F.divLista.length?[{v:F.div,cor:"var(--k7)",label:`Gastos diversos no cartão (${F.divLista.length})`}]:[]),{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados no cartão"}])}</div>
     <div class="semrow" style="margin-top:6px"><span><b>Total previsto</b></span><b>${brl(F.total)}</b></div>
     <div class="semrow"><span>Gastos ainda não pagos na fatura</span><b class="${F.aPagar>0?"neg":""}">${brl(F.aPagar)}</b></div>
     ${F.itens.length?`<details class="rel-det"><summary>Parcelas e assinaturas (${F.itens.length})</summary>${F.itens.map(x=>`<div class="semrow"><span>${esc(x.nome)} ${x.info?(x.info.estado==="ativa"?`<span class="falt ${x.info.restam===0?"ultima":x.info.restam<=2?"perto":""}">${x.info.i}/${x.info.n} · ${textoFalta(x.info)}</span>`:""):`<span class="falt ass">mensal</span>`}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
     ${F.fixasLista.length?`<details class="rel-det"><summary>Contas fixas no cartão (${F.fixasLista.length})</summary>${F.fixasLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
+     ${F.divLista.length?`<details class="rel-det"><summary>Gastos diversos no cartão (${F.divLista.length})</summary>${F.divLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
     <p class="rel-note">Contado por mês de calendário. O cartão fecha no dia ${R.diaFechamento}, então compras feitas depois dele caem na fatura do mês seguinte e os valores podem se deslocar um pouco entre um mês e outro.</p></div>`));
   /* quem gastou e como pagou */
   if(tot>0){const pp=R.gastos.porPessoa;
@@ -1518,25 +1523,26 @@ function renderFolga(){
 function renderCartao(){renderFolga();
   const cur=monthKey(today);const months=Array.from({length:15},(_,i)=>addMonths(cur,i));const M=metasDe();
   const sim=simItem();
-  const vals=months.map(k=>parcelasMes(k)),fxv=months.map(k=>contasNoCartao(k)+assinaturasMes(k));const isAss=ui.sTipo==="assinatura";
+  const vals=months.map(k=>parcelasMes(k)),fxv=months.map(k=>Core.contasCartaoFixas(S,k)+assinaturasMes(k)),dvv=months.map(k=>Core.contasCartaoOutras(S,k));const isAss=ui.sTipo==="assinatura";
   const simv=months.map(k=>sim&&!isAss?itemNoMes(sim,k):0),simA=months.map(k=>sim&&isAss?itemNoMes(sim,k):0);
   const metas=months.map(k=>{const s=salarioRef(k);return s?s*M.cartao/100:null;});
-  const c0=vals[0]+fxv[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(vals[0]/s0*100):null;
+  const c0=vals[0]+fxv[0]+dvv[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(vals[0]/s0*100):null;
   $("cartHero").innerHTML=`<div class="note${p0!=null&&p0>M.cartao?" neg":""}">${guilloche}<p>Fatura prevista de ${MESES[today.getMonth()]}</p>
-    <div class="big num">${brl0(c0)}</div><p>${brl0(vals[0])} em parcelas${p0!=null?` (${p0}% do salário, meta de ${M.cartao}%)`:""} + ${brl0(fxv[0])} em assinaturas e contas fixas pagas no cartão, que contam em Despesas fixas.${p0==null?" Cadastre o salário do mês para ver a porcentagem.":""}</p></div>`;
+    <div class="big num">${brl0(c0)}</div><p>${brl0(vals[0])} em parcelas${p0!=null?` (${p0}% do salário, meta de ${M.cartao}%)`:""} + ${brl0(fxv[0])} em assinaturas e contas fixas (contam em Despesas fixas)${dvv[0]>0?` + ${brl0(dvv[0])} em gastos diversos no cartão (contam em Gastos diversos)`:""}.${p0==null?" Cadastre o salário do mês para ver a porcentagem.":""}</p></div>`;
   /* barra do mês, de baixo para cima: assinaturas e contas fixas (âmbar) → parcelas (verde/vermelho) → quanto ainda cabe até a meta (tracejado).
      A linha da meta de cada mês fica em (âmbar + meta), porque a meta vale só para as parcelas. */
-  const temSim=simv.some(v=>v>0)||simA.some(v=>v>0),nl=3+(temSim?1:0);
+  const temSim=simv.some(v=>v>0)||simA.some(v=>v>0),temDv=dvv.some(v=>v>0),nl=3+(temSim?1:0)+(temDv?1:0);
   const W=months.length*44+40,top=26,ch=170,bot=24+nl*14,H=top+ch+bot;
   const kfmt=v=>v>=1000?(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":String(Math.round(v));
-  const max=Math.max(1,...months.map((k,i)=>fxv[i]+simA[i]+Math.max(vals[i]+simv[i],metas[i]||0)));
+  const max=Math.max(1,...months.map((k,i)=>fxv[i]+dvv[i]+simA[i]+Math.max(vals[i]+simv[i],metas[i]||0)));
   const y=v=>top+ch-(v/max)*ch;
   let g=`<defs><pattern id="folgaHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--petrol-soft)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--petrol)" stroke-width="1.6" opacity=".6"/></pattern></defs>`;
   const seg=(x,de,ate,fill,tit,extra="")=>ate>de?`<rect x="${x}" y="${y(ate)}" width="28" height="${Math.max(0,y(de)-y(ate))}" rx="3" fill="${fill}" ${extra}><title>${tit}</title></rect>`:"";
   months.forEach((k,i)=>{const x=30+i*44;const v=vals[i],sv=simv[i],fx=fxv[i],sa=simA[i],m=metas[i];
-    const base=fx+sa,par=v+sv,over=m!=null&&par>m,folga=m!=null?Math.max(0,m-par):0,tot=base+par;
+    const dv=dvv[i],base=fx+dv+sa,par=v+sv,over=m!=null&&par>m,folga=m!=null?Math.max(0,m-par):0,tot=base+par;
     g+=seg(x,0,fx,"var(--amber)",`${mesCurto(k)}, assinaturas e contas fixas no cartão: ${brl(fx)}`,'opacity=".85"');
-    g+=seg(x,fx,base,"var(--sim)",`Assinatura simulada: ${brl(sa)}`);
+    g+=seg(x,fx,fx+dv,"var(--k7)",`${mesCurto(k)}, gastos diversos no cartão: ${brl(dv)}`);
+    g+=seg(x,fx+dv,base,"var(--sim)",`Assinatura simulada: ${brl(sa)}`);
     g+=seg(x,base,base+v,`var(${over?"--warn":"--petrol"})`,`${mesCurto(k)}, parcelas: ${brl(v)}${m!=null?` (meta ${brl0(m)})`:""}`);
     g+=seg(x,base+v,base+par,"var(--sim)",`Parcela simulada: ${brl(sv)}`);
     if(folga>0)g+=seg(x,base+par,base+par+folga,"url(#folgaHatch)",`${mesCurto(k)}: cabem mais ${brl(folga)} em parcelas sem passar da meta`,'stroke="var(--petrol)" stroke-width="1" stroke-dasharray="3 2" class="folga"');
@@ -1550,6 +1556,7 @@ function renderCartao(){renderFolga();
     let n=1;g+=lin(n++,folga>0?"+"+kfmt(folga):"–","var(--petrol)");
     if(temSim)g+=lin(n++,(sv+sa)>0?kfmt(sv+sa):"–","var(--sim)");
     g+=lin(n++,v>0?kfmt(v):"–",`var(${over?"--warn":"--petrol"})`);
+    if(temDv)g+=lin(n++,dv>0?kfmt(dv):"–","var(--k7)");
     g+=lin(n++,fx>0?kfmt(fx):"–","var(--amber)");});
   $("cartChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fatura prevista do cartão nos próximos 15 meses">${g}</svg>`;
   if(sim){
@@ -1579,7 +1586,7 @@ function renderCartao(){renderFolga();
     return `<li class="tap" data-ci="${esc(it.id)}"><div class="li-main"><div class="t">${esc(it.nome)} ${chipParcela(it,cur)}</div><div class="s">${subItem(it,cur)}${it.origemGasto?" · lançada como gasto":""}</div>${barraParcela(it,cur)}</div><span class="amt">${brl(v)}</span></li>`;}).join(""):`<li class="empty">Nada cadastrado no cartão.</li>`;
   const fx=contasMes(cur).filter(c=>c.noCartao);
   $("cartFixasTotal").textContent=fx.length?`${brl0(sum(fx.map(c=>c.valor)))} em ${MESES[today.getMonth()]}`:"";
-  $("cartFixas").innerHTML=fx.length?fx.map(c=>`<li class="tap" data-c="${esc(c.id)}"><div class="li-main"><div class="t">${esc(c.nome)}</div><div class="s">${TIPO_ROT[tipoDe(c)]}, todo mês</div></div><span class="amt">${brl(c.valor)}</span></li>`).join(""):`<li class="empty">Nenhuma conta fixa marcada como paga no cartão em ${MESES[today.getMonth()]}. Marque pela aba Contas ou Ano.</li>`;
+  $("cartFixas").innerHTML=fx.length?fx.map(c=>`<li class="tap" data-c="${esc(c.id)}"><div class="li-main"><div class="t">${esc(c.nome)}</div><div class="s">${TIPO_ROT[tipoDe(c)]}</div></div><span class="amt">${brl(c.valor)}</span></li>`).join(""):`<li class="empty">Nenhuma conta marcada como paga no cartão em ${MESES[today.getMonth()]}. Marque pela aba Contas ou Ano.</li>`;
 }
 
 /* ---------- Contas (feito para o celular) ---------- */
