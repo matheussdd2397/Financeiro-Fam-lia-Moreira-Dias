@@ -454,6 +454,24 @@ table.pl td.neg{color:var(--warn)}
 .linkbtn{background:none;border:0;color:var(--petrol);font:inherit;font-weight:700;padding:8px 0;cursor:pointer}
 
 .legend i.sw-folga{background:repeating-linear-gradient(45deg,var(--petrol-soft) 0 3px,var(--petrol) 3px 4px);outline:1px dashed var(--petrol);outline-offset:-1px}
+
+/* ===== desejos ===== */
+.ds-item .ds-dir{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.ds-ord{display:flex;gap:4px}
+.ds-ord button{width:32px;height:30px;border:1px solid var(--line);background:var(--paper);border-radius:8px;color:var(--ink);font-size:.9rem;cursor:pointer}
+.ds-plano{line-height:1.35}
+.ds-plano b{color:var(--petrol)}
+.ds-ops .semrow span{font-size:.88rem}
+.lib-box{margin-top:12px;padding:12px;border-radius:12px;background:var(--paper)}
+.lib-box input{margin:6px 0 8px;max-width:160px}
+.lib-box .btn{width:100%}
+nav.tabs button span{white-space:nowrap}
+
+/* barra com 7 abas: ícone com menos margem lateral e nome um pouco menor, para caber até em 320 px */
+nav.tabs button{min-width:0}
+nav.tabs button svg{padding:3px 9px}
+nav.tabs button span{font-size:.7rem}
+@media (max-width:350px){nav.tabs button svg{padding:3px 6px}nav.tabs button span{font-size:.64rem}}
 </style>
 </head>
 <body class="deslogado">
@@ -583,6 +601,13 @@ table.pl td.neg{color:var(--warn)}
     <div id="invCorpo"></div>
   </section>
 
+  <!-- DESEJOS -->
+  <section id="tab-desejos" hidden>
+    <div id="dsTopo"></div>
+    <div class="chips filtro" id="dsFiltro" role="group" aria-label="Filtrar desejos" style="margin-top:14px"></div>
+    <div id="dsLista"></div>
+  </section>
+
   <!-- CONTAS -->
   <section id="tab-contas" hidden>
     <div class="weeknav">
@@ -614,6 +639,7 @@ table.pl td.neg{color:var(--warn)}
   <button role="tab" data-tab="cartao" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span>Cartão</span></button>
   <button role="tab" data-tab="contas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 7 2 2 3.5-3.5M4 15l2 2 3.5-3.5M13 8h7M13 16h7"/></svg><span>Contas</span></button>
   <button role="tab" data-tab="invest" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5 9 12l3.5 3.5L20.5 7"/><path d="M15 7h5.5v5.5"/></svg><span>Invest.</span></button>
+  <button role="tab" data-tab="desejos" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-7.5-10.1A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.8c0 5.7-7.5 10.1-7.5 10.1z"/></svg><span>Desejos</span></button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -740,12 +766,28 @@ table.pl td.neg{color:var(--warn)}
     <div class="full"><label for="atPreco" id="atPrecoLbl">Cotação atual (R$)</label><input id="atPreco" type="text" inputmode="decimal" autocomplete="off"></div>
     <div class="full"><button class="btn" id="atSalvar" style="width:100%">Atualizar</button></div>
   </div>
+  <label class="check big" style="margin-top:14px"><input type="checkbox" id="atReserva"> <span>🛟 Faz parte da reserva de emergência <small class="muted">(dinheiro de resgate imediato)</small></span></label>
   <h3 class="aj-h">Lançamentos</h3>
   <div class="card" style="padding:4px 12px"><ul class="list" id="atMovs"></ul></div>
   <div class="grid" style="margin-top:12px">
     <div class="full"><button class="btn" id="atAcertar" style="width:100%">Acertar com o Inter</button></div>
     <div class="full"><button class="btn ghost" id="atNovo" style="width:100%">+ Lançar neste ativo</button></div>
     <div class="full"><button class="btn ghost danger" id="atApagar" style="width:100%">Apagar o ativo e todos os lançamentos</button></div>
+  </div>
+</div></dialog>
+
+<dialog class="sheet" id="sheetDesejo" aria-labelledby="dsTitulo"><div class="sheet-in">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head"><h2 id="dsTitulo">Novo desejo</h2><button class="x" data-fechar="sheetDesejo" aria-label="Fechar">✕</button></div>
+  <div class="grid">
+    <div class="full"><label for="dsNome">O que é</label><input id="dsNome" type="text" placeholder="Ex.: sofá, viagem, bicicleta" autocomplete="off"></div>
+    <div class="full"><label for="dsPreco" class="sr">Preço</label><div class="valor-grande"><span>R$</span><input id="dsPreco" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></div>
+    <div class="full"><label>De quem é o desejo</label><div class="chips" id="dsQuem"></div></div>
+    <div class="full"><label for="dsObs">Observação ou link (opcional)</label><input id="dsObs" type="text" autocomplete="off"></div>
+    <div class="full" id="dsPlanoBox" hidden><div id="dsPlano"></div></div>
+    <div class="full"><button class="btn" id="dsSalvar" style="width:100%">Salvar</button></div>
+    <div class="full btnrow" id="dsExtra" hidden><button class="btn ghost" id="dsSimular">Simular no Cartão</button><button class="btn ghost" id="dsComprei">Comprei</button></div>
+    <div class="full"><button class="btn ghost danger" id="dsApagar" hidden style="width:100%">Apagar desejo</button></div>
   </div>
 </div></dialog>
 
@@ -788,6 +830,11 @@ table.pl td.neg{color:var(--warn)}
   <div class="grid">
     <div class="m2"><label for="cMetaPrim">Primeira meta (R$)</label><input id="cMetaPrim" type="text" inputmode="decimal" autocomplete="off" placeholder="100.000"></div>
     <div class="m2"><label for="cMetaPasso">Depois, a cada (R$)</label><input id="cMetaPasso" type="text" inputmode="decimal" autocomplete="off" placeholder="50.000"></div>
+  </div>
+  <h3 class="aj-h">Reserva de emergência</h3>
+  <div class="grid">
+    <div class="m2"><label for="cResMeses">Meta (meses de custo de vida)</label><input id="cResMeses" type="text" inputmode="decimal" autocomplete="off" placeholder="6"></div>
+    <div class="m2"><label for="cResCusto">Custo de vida mensal (opcional)</label><input id="cResCusto" type="text" inputmode="decimal" autocomplete="off" placeholder="calcular sozinho"></div>
   </div>
   <h3 class="aj-h">Dólar e cotações automáticas</h3>
   <div class="grid">
@@ -1045,7 +1092,7 @@ function carteira(D,hojeStr){
   const datas=ativos.map(x=>x.a.cotacaoEm||x.a.valorAtualEm).filter(Boolean).sort();
   const temUSD=todos.some(x=>x.p.moeda==="USD"&&(x.p.nat.compras>0||x.p.nat.valor>0));
   return {todos,ativos,encerrados,tot,porTipo,provMes,meses12,prov12,yoc12:tot.custo>0?prov12/tot.custo:null,mediaMensal:prov12/12,maisAntiga:datas[0]||null,
-    semCotacao:ativos.filter(x=>x.p.semCotacao).length,fx,temUSD,semDolar:temUSD&&!dolar};
+    semCotacao:ativos.filter(x=>x.p.semCotacao).length,fx,temUSD,semDolar:temUSD&&!dolar,reserva:sum(ativos.filter(x=>x.a.reserva).map(x=>x.p.valor)),nReserva:ativos.filter(x=>x.a.reserva).length};
 }
 
 /* --- metas de patrimônio: 100 mil, 150 mil, ... e quando cada uma chega só com os aportes planejados (linhas de Investimento em Contas) --- */
@@ -1061,6 +1108,45 @@ function metasPatrimonio(D,valorAtual,hojeStr){
     proximas.forEach(a=>{if(!quando[a]&&acum>=a){quando[a]=k;if(!noPlano)estimado[a]=true;}});
     if(proximas.every(a=>quando[a])||(!noPlano&&media<=0))break;}
   return {primeira:prim,passo,alcancadas,proximas,alvo,falta:Math.max(0,alvo-valorAtual),pct:alvo>0?Math.min(1,valorAtual/alvo):0,quando,estimado,media,fimPlano:ult>=0?plano[ult][0]:null};
+}
+
+/* ====== DECISÕES ====== */
+/* dinheiro que as parcelas liberam: cada mês comparado com as parcelas de hoje, e quanto da sobra passa do orçamento semanal de hoje */
+function liberado(D,hojeStr,n){
+  const hk=hojeStr.slice(0,7),p0=parcelasMes(D,hk),sem=k=>weeksOfMonth(k).length,s0=sobra(D,hk),base=s0!=null?s0/sem(hk):null;
+  const inv=k=>sum(contasMes(D,k).filter(c=>tipoDe(c)==="investimento").map(c=>Number(c.valor)||0));
+  const linhas=[];for(let i=1;i<=(n||15);i++){const k=addMonths(hk,i),p=parcelasMes(D,k),sb=sobra(D,k);
+    linhas.push({k,parcelas:p,libera:Math.max(0,p0-p),sobra:sb,semanas:sem(k),inv:inv(k)});}
+  const marcos=linhas.filter((x,i)=>(i?linhas[i-1].parcelas:p0)-x.parcelas>100);
+  return {hoje:hk,p0,base,inv0:inv(hk),linhas,marcos};
+}
+/* quanto mandar a mais para o investimento em cada mês, mantendo um orçamento por semana */
+function extraParaInvestir(D,lib,porSemana){return lib.linhas.filter(x=>x.sobra!=null).map(x=>({k:x.k,extra:r2(x.sobra-porSemana*x.semanas)})).filter(x=>x.extra>0.5);}
+/* custo de vida mensal: o que sai do salário além do investimento (mediana dos próximos 12 meses, para o 13º não distorcer) */
+function custoVida(D,hojeStr){
+  const cfg=(D.config||{}).reserva||{};if(Number(cfg.custo)>0)return {valor:Number(cfg.custo),manual:true};
+  const hk=hojeStr.slice(0,7),vals=[];
+  for(let i=0;i<12;i++){const k=addMonths(hk,i),s=salario(D,k);if(!s)continue;vals.push(s-sum(contasMes(D,k).filter(c=>tipoDe(c)==="investimento").map(c=>Number(c.valor)||0)));}
+  return {valor:vals.length?mediana(vals):0,manual:false,meses:vals.length};
+}
+/* lista de desejos: para cada item, na ordem da lista, em quantas vezes e a partir de quando cabe na meta do cartão.
+   "Ideal" = o plano que termina de pagar mais cedo; empatando, o que começa antes. Cada plano escolhido ocupa folga dos próximos. */
+const OPC_VEZES=[1,2,3,4,5,6,8,10,12];
+function janelaCompra(D,s){const f=diaFechamento(D),[ya,ma]=addMonths(s,-2).split("-").map(Number),[yb,mb]=addMonths(s,-1).split("-").map(Number);
+  const de=new Date(ya,ma-1,f+1),ate=new Date(yb,mb-1,f),fm=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;return {de:fm(de),ate:fm(ate)};}
+function planoDesejos(D,hojeStr,lista){
+  const ini=primeiraParcela(D,hojeStr),virt=[],out={};
+  for(const w of lista){const P=Number(w.preco)||0;if(!(P>0)){out[w.id]=null;continue;}
+    const Dx={...D,cartao:[...(D.cartao||[]),...virt]},opcoes=[];
+    for(const n of OPC_VEZES){const parc=Math.ceil(P/n*100)/100;let inicio=null;
+      for(let i=0;i<=24&&!inicio;i++){const s=addMonths(ini,i),c=capacidade(Dx,s,n);if(c&&c.parcelaMax>=parc)inicio=s;}
+      opcoes.push({n,parcela:parc,inicio,fim:inicio?addMonths(inicio,n-1):null});}
+    const ok=opcoes.filter(o=>o.inicio);
+    const ideal=ok.length?ok.reduce((m,o)=>(!m||o.fim<m.fim||(o.fim===m.fim&&o.inicio<m.inicio))?o:m,null):null;
+    if(ideal)virt.push({id:"_plano_"+w.id,nome:w.nome,tipo:"parcela",valor:ideal.parcela,total:ideal.n,inicio:ideal.inicio});
+    let acum=0,avista=null;for(let i=0;i<120&&!avista;i++){const k=addMonths(ini,i),f=folgaCartao(Dx,k);if(!f)break;acum+=Math.max(0,f.folga);if(acum>=P)avista=k;}
+    out[w.id]={opcoes,ideal,avista,janela:ideal?janelaCompra(D,ideal.inicio):null};}
+  return out;
 }
 
 /* --- relatório do mês --- */
@@ -1134,7 +1220,7 @@ function resumoTexto(R){
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
   tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,ehAssinatura,assinaturasMes,parcelasMes,contasNoCartao,contasCartaoFixas,contasCartaoOutras,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
-  metasPatrimonio,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
+  metasPatrimonio,liberado,extraParaInvestir,custoVida,janelaCompra,planoDesejos,OPC_VEZES,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
 
@@ -1156,8 +1242,8 @@ const newId=p=>`${p}-${Date.now().toString(36)}${Math.random().toString(36).slic
 
 /* ---------- estado ---------- */
 const today=new Date();
-const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],loaded:new Set(),readonly:false};
-const ui={tab:"semana",week:mondayOf(today),mes:monthKey(today),ano:String(today.getFullYear()),pm:monthKey(today),pv:"mes",cf:"todas",cm:(()=>{try{return localStorage.getItem("nm-contas-modo")||"lista";}catch(e){return "lista";}})(),
+const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],loaded:new Set(),readonly:false};
+const ui={tab:"semana",week:mondayOf(today),mes:monthKey(today),ano:String(today.getFullYear()),pm:monthKey(today),pv:"mes",cf:"todas",df:"todos",libBase:null,cm:(()=>{try{return localStorage.getItem("nm-contas-modo")||"lista";}catch(e){return "lista";}})(),
   quem:store.get("nm-quem"),forma:store.get("nm-forma")==="pix"?"pix":"cartao",parc:false,sTipo:"parcela"};
 let db=null;let nomeUsuario="";
 
@@ -1647,7 +1733,7 @@ function renderAjustes(){
   const set=(id,v)=>{if(a!==$(id))$(id).value=v;};
   set("cInicio",S.config.inicio||"");set("cAjuste",S.config.ajusteInicial!=null?fmtInput(Number(S.config.ajusteInicial)):"");set("cNomes",pessoas().join(", "));
   set("mtFixa",M.fixa);set("mtDiversos",M.diversos);set("mtCartao",M.cartao);set("mtInvest",M.investimento);set("mtSobra",M.sobra);
-  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
+  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");const rs=S.config.reserva||{};set("cResMeses",String(Number(rs.meses)||6));set("cResCusto",Number(rs.custo)>0?fmtInput(Number(rs.custo)):"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
 }
 function somaMetas(){const t=["mtFixa","mtDiversos","mtCartao","mtInvest","mtSobra"].reduce((s,id)=>s+(Number($(id).value)||0),0);
   $("mtSoma").textContent=t+"%";$("mtSoma").classList.toggle("ruim",t!==100);}
@@ -1655,7 +1741,7 @@ function somaMetas(){const t=["mtFixa","mtDiversos","mtCartao","mtInvest","mtSob
 function render(){
   const ready=["gastos","cartao","contas","meses","config"].every(x=>S.loaded.has(x));
   $("status").textContent=db?((nomeUsuario?`Oi, ${nomeUsuario}. `:"")+(ready?"Tudo sincronizado.":"Carregando os dados…")):"Sem conexão com os dados.";
-  renderQuem();renderForma();renderSemana();renderPainel();renderAno();renderCartao();renderContas();renderInvest();renderAjustes();
+  renderQuem();renderForma();renderSemana();renderPainel();renderAno();renderCartao();renderContas();renderInvest();renderDesejos();renderAjustes();
 }
 
 /* ================= Investimentos ================= */
@@ -1712,6 +1798,28 @@ function renderInvest(){
      <p class="small muted" style="margin:6px 0 0">${MP.quando[MP.alvo]?`Pelo investimento planejado na aba Contas, você chega lá em <b>${qd(MP.alvo)}</b>.`:"Cadastre o investimento de cada mês na aba Contas (tipo Investimento) para eu estimar quando você chega lá."}</p>
      <div style="margin-top:10px">${MP.alcancadas.slice(-2).map(a=>`<div class="semrow"><span>✓ ${mil(a)}</span><b class="meta-ok">alcançada</b></div>`).join("")}${MP.proximas.map(a=>`<div class="semrow"><span>${a===MP.alvo?"→":"○"} ${mil(a)}</span><b>${qd(a)}</b></div>`).join("")}</div>
      <p class="sec-note">Sem contar rendimentos: é o patrimônio de hoje mais os aportes planejados (linhas de Investimento na aba Contas)${MP.fimPlano?`, que vão até ${mesCurto(MP.fimPlano)}; depois disso, uso a média deles`:""}. ${C.semDolar?"O exterior está pelo dólar estimado. ":""}Mude as metas em Ajustes.</p></div>`));}
+  /* reserva de emergência */
+  {const cv=Core.custoVida(S,hoje),cfgR=S.config.reserva||{},metaM=Number(cfgR.meses)>0?Number(cfgR.meses):6;
+   const meses=cv.valor>0?C.reserva/cv.valor:0,alvoR=cv.valor*metaM,pc=alvoR>0?Math.min(1,C.reserva/alvoR):0;
+   const mtx=meses.toLocaleString("pt-BR",{maximumFractionDigits:1});
+   h.push(relSec("Reserva de emergência",`<div class="rel-card">
+     <div class="meta-topo"><span>Cobre hoje</span><b>${mtx} ${meses>=0.95&&meses<1.05?"mês":"meses"}</b></div>
+     <div class="progresso meta" role="progressbar" aria-label="Reserva em relação à meta" aria-valuenow="${Math.round(pc*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.round(pc*100)}%"></i></div>
+     <p class="small" style="margin:8px 0 0">${brl0(C.reserva)} de ${brl0(alvoR)} (${metaM} meses de custo de vida) · ${C.reserva>=alvoR&&alvoR>0?"<b>meta atingida</b>":`faltam <b>${brl0(Math.max(0,alvoR-C.reserva))}</b>`}</p>
+     <p class="small muted" style="margin:6px 0 0">${C.nReserva?`${plural(C.nReserva,"investimento marcado","investimentos marcados")} como reserva.`:"Nenhum investimento está marcado como reserva. Toque num ativo de resgate imediato (renda fixa com liquidez diária, por exemplo) e marque “Faz parte da reserva”. Se a reserva está em outro banco, cadastre-a em + Lançar > Acertar, como renda fixa, e marque."}</p>
+     <p class="sec-note">Custo de vida usado: ${brl0(cv.valor)} por mês (${cv.manual?"informado em Ajustes":"o que sai do salário além do investimento, mediana dos próximos 12 meses"}). É uma conta, não uma recomendação. Mude a meta em Ajustes.</p></div>`));}
+  /* dinheiro que as parcelas vão liberar */
+  {const L=Core.liberado(S,hoje,15);
+   if(L.p0>0){const base0=ui.libBase!=null?ui.libBase:Math.round(L.base||0);
+     const invMed=(()=>{const v=L.linhas.slice(0,12).map(x=>x.inv);return v.length?sum(v)/v.length:0;})();
+     h.push(relSec("Dinheiro que as parcelas vão liberar",`<div class="rel-card">
+       <p style="margin:0 0 8px">Hoje as parcelas do cartão somam <b>${brl0(L.p0)}</b> por mês. Conforme elas acabam, esse dinheiro fica livre:</p>
+       ${L.marcos.slice(0,6).map(x=>`<div class="semrow"><span>${mesCurto(x.k)}: parcelas de ${brl0(x.parcelas)}</span><b>libera ${brl0(x.libera)}/mês</b></div>`).join("")}
+       <p class="small muted" style="margin:10px 0 0">No seu planejamento, o investimento vai de ${brl0(L.inv0)} neste mês para uma média de ${brl0(invMed)} por mês nos próximos 12, então boa parte do que é liberado já vai para lá. O risco é o resto virar parcela nova sem vocês perceberem.</p>
+       <div class="lib-box"><label for="libBase">Orçamento por semana que vocês querem manter</label><input id="libBase" type="text" inputmode="decimal" autocomplete="off" value="${fmtInput(base0)}">
+         <p class="small" id="libPrev" style="margin:0 0 10px">${libPrevTxt(L,base0,T.valor)}</p>
+         <button class="btn ghost" data-ia="libAplicar">Mandar o resto para o investimento</button></div>
+       <p class="sec-note">O botão soma ao investimento de cada mês o que passar desse orçamento semanal (só nos meses com salário cadastrado). Para desfazer, é só editar a linha Investimento na aba Contas.</p></div>`));}}
   /* por tipo */
   if(C.porTipo.length&&T.valor>0){const it=C.porTipo.map((x,i)=>({nome:(TI[x.tipo]||TI.outro).nome,valor:x.valor,cor:`var(--k${i%12})`,pct:x.pct}));
     h.push(relSec("Como está dividido",`<div class="rel-card"><div class="donutbox">${svgDonut(it.map(x=>({...x})),T.valor).replace("gastos","carteira")}<div class="leg">${it.map(x=>`<div class="legrow"><i style="background:${x.cor}"></i><span>${esc(x.nome)}</span><b>${brl0(x.valor)}</b><em>${Math.round(x.pct*100)}%</em></div>`).join("")}</div></div></div>`));}
@@ -1746,8 +1854,33 @@ $("tab-invest").addEventListener("click",e=>{
   const at=e.target.closest("[data-at]");if(at){abrirAtivo(at.dataset.at);return;}
   const mv=e.target.closest("[data-mv]");if(mv){abrirInv({mov:mv.dataset.mv});return;}
   const ia=e.target.closest("[data-ia]");if(!ia)return;
+  if(ia.dataset.ia==="libAplicar"){aplicarLiberado();return;}
   if(ia.dataset.ia==="novo")abrirInv({});if(ia.dataset.ia==="cotacoes")atualizarCotacoes();
   if(ia.dataset.ia==="dolar"){renderAjustes();abrir("sheetAjustes");setTimeout(()=>$("cDolar").focus(),80);}});
+
+/* ---------- dinheiro liberado: prévia e aplicação ---------- */
+function libPlano(L,base){const ex=Core.extraParaInvestir(S,L,base);
+  const contas=S.contas.map(c=>({...c}));ex.forEach(x=>{const c=contas.find(y=>y.mes===x.k&&Core.tipoDe(y)==="investimento");if(c)c.valor=r2(Number(c.valor)+x.extra);else contas.push({id:"_novo"+x.k,mes:x.k,nome:"Investimento",valor:x.extra,tipo:"investimento"});});
+  return {ex,contas};}
+function libPrevTxt(L,base,valorAtual){
+  const {ex,contas}=libPlano(L,base);if(!ex.length)return "Com esse orçamento semanal, não sobra nada além do que já está planejado.";
+  const tot=sum(ex.map(x=>x.extra)),hoje=ymd(new Date()),m1=Core.metasPatrimonio(S,valorAtual,hoje),m2=Core.metasPatrimonio({...S,contas},valorAtual,hoje);
+  const mil=v=>`R$ ${(v/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})} mil`,q=(m,a)=>m.quando[a]?mesCurto(m.quando[a])+(m.estimado[a]?" (estimado)":""):"—";
+  return `Soma <b>${brl0(tot)}</b> ao investimento entre ${mesCurto(ex[0].k)} e ${mesCurto(ex[ex.length-1].k)} (média de ${brl0(tot/ex.length)} por mês). Meta de ${mil(m1.alvo)}: <b>${q(m1,m1.alvo)} → ${q(m2,m1.alvo)}</b>.`;
+}
+$("tab-invest").addEventListener("input",e=>{if(e.target.id!=="libBase")return;const v=money(e.target.value);ui.libBase=isNaN(v)?0:v;
+  const C=Core.carteira(S,ymd(new Date()));$("libPrev").innerHTML=libPrevTxt(Core.liberado(S,ymd(new Date()),15),ui.libBase,C.tot.valor);});
+async function aplicarLiberado(){
+  const L=Core.liberado(S,ymd(new Date()),15),base=ui.libBase!=null?ui.libBase:Math.round(L.base||0),{ex}=libPlano(L,base);
+  if(!ex.length){toast("Nada para mandar: o planejamento já usa tudo acima desse orçamento semanal.");return;}
+  const tot=sum(ex.map(x=>x.extra));
+  if(!confirm(`Somar ${brl0(tot)} às linhas de Investimento de ${mesCurto(ex[0].k)} a ${mesCurto(ex[ex.length-1].k)}, mantendo ${brl0(base)} por semana para os gastos?`))return;
+  const ops=ex.map(x=>{const c=S.contas.find(y=>y.mes===x.k&&Core.tipoDe(y)==="investimento");
+    return c?{t:"merge",col:"contas",id:c.id,data:{valor:r2(Number(c.valor)+x.extra)}}:{t:"set",col:"contas",id:`${x.k}-investimento-extra`,data:{mes:x.k,nome:"Investimento",valor:x.extra,tipo:"investimento",paga:false,ordem:90}};});
+  ui.libBase=null;await write(()=>aplicar(ops),`Investimento planejado aumentou ${brl0(tot)}.`);
+}
+$("atReserva").addEventListener("change",async()=>{const a=S.invest.find(x=>x.id===atSel);if(!a)return;
+  await write(()=>aplicar([{t:"merge",col:"invest",id:a.id,data:{reserva:$("atReserva").checked}}]),$("atReserva").checked?"Marcado como reserva de emergência.":"Desmarcado da reserva.");});
 
 /* ---------- folha de lançamento ---------- */
 const iv={id:null,tipo:"compra",kind:"dividendo",ativoOrig:null};
@@ -1878,7 +2011,7 @@ $("ivApagar").onclick=async()=>{if(!iv.id||!confirm("Apagar este lançamento?"))
 let atSel=null;
 function abrirAtivo(id){
   const a=S.invest.find(x=>x.id===id);if(!a)return;atSel=id;const C=Core.carteira(S,ymd(new Date()));const x=C.todos.find(y=>y.a.id===id);const p=x.p,t=TI[a.tipo]||TI.outro;
-  $("atTitulo").textContent=`${t.ico} ${nomeAtivo(a)}`;
+  $("atTitulo").textContent=`${t.ico} ${nomeAtivo(a)}`;$("atReserva").checked=!!a.reserva;
   const usd=p.moeda==="USD",nt=p.nat,F=usd?usdF:brl,F0=usd?usdF:brl0;let linhas;
   if(usd){linhas=[["Valor atual",brl(p.valor)],["Valor atual em dólar",usdF(nt.valor)],...(p.modo==="cotas"?[["Quantidade",fmtQ(p.qtd)],["Preço médio",usdF(nt.pm)]]:[]),["Aportado em dólar",usdF(nt.custo)],["Custo em reais (dólar médio R$ "+(nt.custo>0?(p.custo/nt.custo).toFixed(2).replace(".",","):"–")+")",brl(p.custo)],
     ["Resultado da posição",`${sgn(p.resultado)}${pcTxt(p.resPct)}`],["Resultado em dólar",`${nt.resultado>=0?"+":"−"}${usdF(Math.abs(nt.resultado))}`],["Proventos líquidos recebidos",`${usdF(nt.prov)} (≈ ${brl(p.prov)})`]];
@@ -1948,17 +2081,92 @@ async function atualizarCotacoes(){
   else toast(avisos.length?avisos.join(" "):`Nada veio${falhas.length?` (${falhas.join(", ")})`:""}. Use o preço manual tocando no ativo.`);
 }
 
+/* ================= Desejos ================= */
+const quemOpc=()=>[...pessoas(),"Os dois"];
+const dsDm=s=>s?`${s.slice(8,10)}/${s.slice(5,7)}`:"";
+let dsSel=null,dsQuem=null;
+function desejosAtivos(){return S.desejos.filter(d=>d.status!=="comprado").sort((a,b)=>(Number(a.ordem)||0)-(Number(b.ordem)||0)||(a.criado||0)-(b.criado||0));}
+const vezesTxt=o=>o.n===1?`à vista no cartão (${brl0(o.parcela)})`:`${o.n}x de ${brl0(o.parcela)}`;
+function planoCurto(p){
+  if(!p)return "Informe o preço para eu planejar.";
+  let t=p.ideal?`<b>Ideal: ${vezesTxt(p.ideal)}</b>, ${p.ideal.n>1?`de ${mesCurto(p.ideal.inicio)} a ${mesCurto(p.ideal.fim)}`:`em ${mesCurto(p.ideal.inicio)}`}. Compre entre ${dsDm(p.janela.de)} e ${dsDm(p.janela.ate)}.`:"Não cabe na meta do cartão nos próximos 2 anos.";
+  if(p.avista)t+=` À vista, juntando a folga do cartão: ${mesCurto(p.avista)}.`;
+  return t;
+}
+function renderDesejos(){
+  const at=desejosAtivos(),comp=S.desejos.filter(d=>d.status==="comprado").sort((a,b)=>String(b.compradoEm||"").localeCompare(String(a.compradoEm||"")));
+  const P=Core.planoDesejos(S,ymd(new Date()),at);
+  const fim=at.map(d=>P[d.id]&&P[d.id].ideal?P[d.id].ideal.fim:null).filter(Boolean).sort().pop(),naoCabem=at.filter(d=>P[d.id]&&!P[d.id].ideal).length;
+  $("dsTopo").innerHTML=`<div class="env">${guilloche}<p class="env-label">Lista de desejos</p><div class="big num">${brl0(sum(at.map(d=>Number(d.preco)||0)))}</div>
+    <p class="env-sub">${at.length?plural(at.length,"desejo","desejos"):"nenhum desejo ainda"}${comp.length?` · ${plural(comp.length,"já realizado","já realizados")}`:""}</p>
+    ${at.length?`<div class="env-chips">${fim?`<span>na ordem da lista, o último plano termina em ${mesCurto(fim)}</span>`:""}${naoCabem?`<span>${plural(naoCabem,"não cabe","não cabem")} no cartão em 2 anos</span>`:""}</div>`:""}</div>`;
+  $("dsFiltro").innerHTML=[["todos","Todos"],...quemOpc().map(q=>[q,q])].map(([v,t])=>`<button type="button" data-df="${esc(v)}" aria-pressed="${ui.df===v}">${esc(t)}</button>`).join("");
+  const vis=ui.df==="todos"?at:at.filter(d=>(d.quem||"Os dois")===ui.df);
+  const li=d=>`<li class="tap ds-item" data-ds="${esc(d.id)}"><div class="li-main"><div class="t">${esc(d.nome)} <span class="pill">${esc(d.quem||"Os dois")}</span></div><div class="s ds-plano">${planoCurto(P[d.id])}</div></div>
+    <div class="ds-dir"><span class="amt">${brl0(Number(d.preco)||0)}</span>${ui.df==="todos"&&at.length>1?`<span class="ds-ord"><button type="button" data-up="${esc(d.id)}" aria-label="Subir ${esc(d.nome)} na lista">↑</button><button type="button" data-down="${esc(d.id)}" aria-label="Descer ${esc(d.nome)} na lista">↓</button></span>`:""}</div></li>`;
+  let h=vis.length?`<div class="card" style="padding:4px 12px;margin-top:12px"><ul class="list">${vis.map(li).join("")}</ul></div>`:
+    `<div class="card" style="margin-top:12px"><p style="margin:0 0 8px">${at.length?"Nenhum desejo de "+esc(ui.df)+".":"Anote aqui o que vocês querem comprar e quanto custa."}</p><p class="small muted" style="margin:0">Para cada desejo, eu mostro em quantas vezes e a partir de quando ele cabe na meta do cartão, e quando daria para comprar à vista juntando a folga.</p></div>`;
+  h+=`<p class="sec-note">A ordem da lista é a prioridade: cada desejo planejado ocupa a folga do cartão dos que vêm depois. "Ideal" é o plano que termina de pagar mais cedo sem passar da meta do cartão (empatando, o que começa antes). Use as setas para mudar a ordem.</p>`;
+  if(comp.length)h+=`<details class="enc"><summary>Já realizados (${comp.length})</summary><div class="card" style="padding:4px 12px"><ul class="list">${comp.map(d=>`<li><div class="li-main"><div class="t">✓ ${esc(d.nome)}</div><div class="s">${esc(d.quem||"Os dois")}${d.compradoEm?` · comprado em ${dsDm(d.compradoEm)}/${d.compradoEm.slice(2,4)}`:""}</div></div><button class="linkbtn" data-undo="${esc(d.id)}">Voltar para a lista</button></li>`).join("")}</ul></div></details>`;
+  $("dsLista").innerHTML=h;
+}
+$("tab-desejos").addEventListener("click",async e=>{
+  const f=e.target.closest("[data-df]");if(f){ui.df=f.dataset.df;renderDesejos();return;}
+  const up=e.target.closest("[data-up]"),dn=e.target.closest("[data-down]");
+  if(up||dn){e.stopPropagation();const at=desejosAtivos(),i=at.findIndex(d=>d.id===(up||dn).dataset[up?"up":"down"]),j=up?i-1:i+1;if(i<0||j<0||j>=at.length)return;
+    const ops=at.map((d,idx)=>({t:"merge",col:"desejos",id:d.id,data:{ordem:idx===i?j:(idx===j?i:idx)}}));await write(()=>aplicar(ops));return;}
+  const u=e.target.closest("[data-undo]");if(u){await write(()=>aplicar([{t:"merge",col:"desejos",id:u.dataset.undo,data:{status:"ativo",compradoEm:null}}]),"Voltou para a lista.");return;}
+  const it=e.target.closest("[data-ds]");if(it)abrirDesejo(it.dataset.ds);});
+
+/* ---------- folha do desejo ---------- */
+function renderDsQuem(){$("dsQuem").innerHTML=quemOpc().map(q=>`<button type="button" data-v="${esc(q)}" aria-pressed="${dsQuem===q}">${esc(q)}</button>`).join("");}
+$("dsQuem").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;dsQuem=b.dataset.v;renderDsQuem();});
+function abrirDesejo(id){
+  const d=id?S.desejos.find(x=>x.id===id):null;dsSel=d?d.id:null;
+  $("dsTitulo").textContent=d?"Desejo":"Novo desejo";$("dsNome").value=d?d.nome:"";$("dsPreco").value=d?fmtInput(Number(d.preco)||0):"";$("dsObs").value=d?(d.obs||""):"";
+  dsQuem=d?(d.quem||"Os dois"):(ui.df!=="todos"?ui.df:(ui.quem||pessoas()[0]));renderDsQuem();
+  $("dsApagar").hidden=!d;$("dsExtra").hidden=!d||d.status==="comprado";$("dsPlanoBox").hidden=true;
+  if(d&&d.status!=="comprado"){const p=Core.planoDesejos(S,ymd(new Date()),desejosAtivos())[d.id];
+    if(p){$("dsPlanoBox").hidden=false;$("dsPlano").innerHTML=`<div class="rel-card ds-ops">
+      ${p.ideal?`<div class="semrow"><span><b>Ideal</b></span><b>${vezesTxt(p.ideal)}</b></div><p class="small" style="margin:2px 0 8px">${p.ideal.n>1?`De ${mesCurto(p.ideal.inicio)} a ${mesCurto(p.ideal.fim)}.`:`Na fatura de ${mesCurto(p.ideal.inicio)}.`} Compre entre <b>${dsDm(p.janela.de)}</b> e <b>${dsDm(p.janela.ate)}</b> para a 1ª parcela cair em ${mesCurto(p.ideal.inicio)}.</p>`:`<p class="small" style="margin:0 0 8px">Não cabe na meta do cartão nos próximos 2 anos em nenhum número de parcelas.</p>`}
+      ${p.opcoes.map(o=>`<div class="semrow"><span>${o.n===1?"À vista no cartão":`${o.n}x de ${brl0(o.parcela)}`}</span><b>${o.inicio?(o.n>1?`${mesCurto(o.inicio)} a ${mesCurto(o.fim)}`:mesCurto(o.inicio)):"não cabe"}</b></div>`).join("")}
+      <div class="semrow"><span>À vista, juntando a folga do cartão</span><b>${p.avista?mesCurto(p.avista):"mais de 10 anos"}</b></div>
+      <p class="sec-note">Considera a ordem da lista (os desejos de cima já ocupam folga) e a meta do cartão. Não considera rendimentos nem promoções.</p></div>`;}}
+  abrir("sheetDesejo");if(!d)setTimeout(()=>$("dsNome").focus(),80);
+}
+$("dsSalvar").onclick=async()=>{
+  const nome=$("dsNome").value.trim(),preco=money($("dsPreco").value);
+  if(!nome){toast("Digite o que é.");$("dsNome").focus();return;}
+  if(!(preco>0)){toast("Digite o preço.");$("dsPreco").focus();return;}
+  const ant=dsSel?S.desejos.find(x=>x.id===dsSel):null,id=dsSel||`d-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`;
+  const data={nome,preco:r2(preco),quem:dsQuem||"Os dois",obs:$("dsObs").value.trim()};
+  if(!ant){data.status="ativo";data.criado=Date.now();data.ordem=desejosAtivos().length;}
+  const ok=await write(()=>aplicar([{t:ant?"merge":"set",col:"desejos",id,data}]),ant?"Desejo atualizado.":"Desejo anotado.");if(ok)fechar("sheetDesejo");};
+$("dsApagar").onclick=async()=>{if(!dsSel||!confirm("Apagar este desejo?"))return;const id=dsSel;fechar("sheetDesejo");await write(()=>aplicar([{t:"del",col:"desejos",id}]),"Desejo apagado.");};
+$("dsSimular").onclick=()=>{const d=S.desejos.find(x=>x.id===dsSel);if(!d)return;const p=Core.planoDesejos(S,ymd(new Date()),desejosAtivos())[d.id];
+  fechar("sheetDesejo");document.querySelector('nav.tabs button[data-tab="cartao"]').click();
+  const pt=document.querySelector('#sTipo button[data-v="parcela"]');if(pt)pt.click();
+  $("sNome").value=d.nome;$("sValor").value=fmtInput(Number(d.preco)||0);$("sParc").value=String(p&&p.ideal?p.ideal.n:1);$("sInicio").value=p&&p.ideal?p.ideal.inicio:Core.primeiraParcela(S,ymd(new Date()));
+  $("sValor").dispatchEvent(new Event("input",{bubbles:true}));setTimeout(()=>$("cartChart").scrollIntoView({block:"center",behavior:"smooth"}),120);};
+$("dsComprei").onclick=async()=>{const d=S.desejos.find(x=>x.id===dsSel);if(!d)return;
+  if(!confirm(`Marcar "${d.nome}" como comprado? Em seguida eu abro o lançamento do gasto para ele entrar no cartão.`))return;
+  const p=Core.planoDesejos(S,ymd(new Date()),desejosAtivos())[d.id],n=p&&p.ideal?p.ideal.n:1;
+  const ok=await write(()=>aplicar([{t:"merge",col:"desejos",id:d.id,data:{status:"comprado",compradoEm:ymd(new Date())}}]),"Desejo realizado!");if(!ok)return;
+  fechar("sheetDesejo");abrirGasto();$("gValor").value=fmtInput(Number(d.preco)||0);$("gDesc").value=d.nome;
+  const fc=document.querySelector('#gForma button[data-v="cartao"]');if(fc)fc.click();
+  if(n>1){const pp=document.querySelector('#gParc button[data-v="parcelado"]');if(pp)pp.click();$("gNVezes").value=String(n);$("gNVezes").dispatchEvent(new Event("input",{bubbles:true}));}};
+
 /* ================= eventos ================= */
 function atualizaFab(){const logado=!document.body.classList.contains("deslogado");
-  $("fab").hidden=!logado||(ui.tab!=="semana"&&ui.tab!=="contas"&&ui.tab!=="invest");$("fabTxt").textContent=ui.tab==="contas"?"Conta":(ui.tab==="invest"?"Lançar":"Gasto");}
+  $("fab").hidden=!logado||(ui.tab!=="semana"&&ui.tab!=="contas"&&ui.tab!=="invest"&&ui.tab!=="desejos");$("fabTxt").textContent=ui.tab==="contas"?"Conta":(ui.tab==="invest"?"Lançar":(ui.tab==="desejos"?"Desejo":"Gasto"));}
 function switchTab(t){ui.tab=t;document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===t)));
-  ["semana","painel","ano","cartao","contas","invest"].forEach(n=>$("tab-"+n).hidden=n!==t);
+  ["semana","painel","ano","cartao","contas","invest","desejos"].forEach(n=>$("tab-"+n).hidden=n!==t);
   document.querySelector(".wrap").classList.toggle("largo",t==="ano");
   atualizaFab();if(t==="painel")renderPainel();window.scrollTo(0,0);
   if(t==="ano")rolarAno();
   if(t==="painel"&&ui.pv==="ano")rolarGeral();}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
-$("fab").onclick=()=>ui.tab==="contas"?abrirConta({modo:"nova",mes:ui.mes}):(ui.tab==="invest"?abrirInv({}):abrirGasto());
+$("fab").onclick=()=>ui.tab==="contas"?abrirConta({modo:"nova",mes:ui.mes}):(ui.tab==="invest"?abrirInv({}):(ui.tab==="desejos"?abrirDesejo(null):abrirGasto()));
 $("btnAjustes").onclick=()=>{renderAjustes();abrir("sheetAjustes");};
 const Enter=(id,btn)=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$(btn).click();}});
 
@@ -2249,11 +2457,11 @@ $("cSalvar").onclick=async()=>{
   const metas={fixa:n("mtFixa"),diversos:n("mtDiversos"),cartao:n("mtCartao"),investimento:n("mtInvest"),sobra:n("mtSobra")};
   const emails=[...new Set($("cEmails").value.split(/[,;\s]+/).map(s=>s.trim().toLowerCase()).filter(s=>/^\S+@\S+\.\S+$/.test(s)))];
   const fecha=parseInt($("cFecha").value,10);
-  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
+  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),reserva:{meses:(()=>{const v=money($("cResMeses").value);return v>0?v:6;})(),custo:(()=>{const v=money($("cResCusto").value);return v>0?r2(v):null;})()},metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
   const ok=await write(()=>db.doc("config/geral").set(cfg),"Ajustes salvos.");if(ok)fechar("sheetAjustes");};
 $("bkBaixar").onclick=()=>{
   const limpa=arr=>Object.fromEntries(arr.map(d=>{const x={...d};const id=x.id;delete x.id;return [id,x];}));
-  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov)}};
+  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov),desejos:limpa(S.desejos)}};
   const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,1)],{type:"application/json"}));
   const a=document.createElement("a");a.href=url;a.download=`nosso-mes-backup-${ymd(new Date())}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);};
 $("bkRestaurar").onclick=()=>{if(!db){toast("Entre com a sua conta para restaurar.");return;}$("bkArquivo").value="";$("bkArquivo").click();};
@@ -2261,7 +2469,7 @@ $("bkArquivo").addEventListener("change",async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   let b;try{b=JSON.parse(await f.text());}catch(x){toast("Esse arquivo não é um backup válido.");return;}
   if(!b||b.app!=="nosso-mes"||!b.dados){toast("Esse arquivo não é um backup do Nosso mês.");return;}
-  const COLS=["config","cartao","contas","meses","gastos","invest","invmov"];const ops=[];
+  const COLS=["config","cartao","contas","meses","gastos","invest","invmov","desejos"];const ops=[];
   const cada=(obj,fn)=>Object.entries(obj||{}).forEach(([col,v])=>{if(COLS.includes(col))fn(col,v);});
   cada(b.dados,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>{const x={...d};delete x.id;ops.push({t:"set",col,id,data:x});}));
   cada(b.mesclar,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>ops.push({t:"merge",col,id,data:d})));
@@ -2288,10 +2496,11 @@ function conectar(){
   sub("contas",a=>S.contas=a.map(c=>({...c,valor:Number(c.valor)||0})));
   sub("meses",a=>{S.meses={};a.forEach(m=>S.meses[m.id]=m);});
   sub("invest",a=>S.invest=a);
+  sub("desejos",a=>S.desejos=a);
   sub("invmov",a=>S.invmov=a.map(m=>({...m,valor:Number(m.valor)||0})));
   subs.push(db.doc("config/geral").onSnapshot(s=>{S.config=s.exists?{...s.data()}:{};S.loaded.add("config");render();},onErr));
 }
-function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],loaded:new Set(),readonly:false});}
+function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],loaded:new Set(),readonly:false});}
 const provider=new GoogleAuthProvider();
 $("btnLogin").onclick=async()=>{$("loginErro").textContent="";
   try{await signInWithPopup(auth,provider);}
