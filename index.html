@@ -863,6 +863,12 @@ li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
     <div class="m2"><label for="cMetaPrim">Primeira meta (R$)</label><input id="cMetaPrim" type="text" inputmode="decimal" autocomplete="off" placeholder="100.000"></div>
     <div class="m2"><label for="cMetaPasso">Depois, a cada (R$)</label><input id="cMetaPasso" type="text" inputmode="decimal" autocomplete="off" placeholder="50.000"></div>
   </div>
+  <h3 class="aj-h">Margem de segurança da semana</h3>
+  <div class="grid">
+    <div class="m2"><label for="cGordura">Desconto por semana (R$)</label><input id="cGordura" type="text" inputmode="decimal" autocomplete="off" placeholder="50"></div>
+    <div class="m2"><label for="cGorduraIni">A partir de</label><select id="cGorduraIni"></select></div>
+    <div class="full"><p class="small muted" style="margin:0">O app tira esse valor da cota de cada semana antes de mostrar. Ele fica guardado como folga no fim do mês, caso algo saia do previsto. Para desligar, deixe 0.</p></div>
+  </div>
   <h3 class="aj-h">Reserva de emergência</h3>
   <div class="grid">
     <div class="m2"><label for="cResMeses">Meta (meses de custo de vida)</label><input id="cResMeses" type="text" inputmode="decimal" autocomplete="off" placeholder="6"></div>
@@ -1007,9 +1013,13 @@ function sobra(D,k,extra){const s=salario(D,k);const c=contasMes(D,k);if(!s||!c.
 function orcamento(D,k){const m=D.meses[k];if(m&&m.orcamento!=null&&m.orcamento!=="")return Number(m.orcamento);return sobra(D,k);}
 const gastosEntre=(D,a,b)=>D.gastos.filter(g=>g.data>=a&&g.data<=b);
 const inicioControle=D=>D.config&&D.config.inicio?mondayOf(parse(D.config.inicio)):null;
+/* margem de segurança ("gordura"): sai da cota de cada semana a partir do mês escolhido e fica guardada como folga.
+   Sem configuração, vale R$ 50 por semana a partir de nov/2026 (pedido do usuário). */
+function gorduraSemana(D,k){const g=(D.config||{}).gordura,cfg=g==null?{valor:50,inicio:"2026-11"}:g,v=Number(cfg.valor)||0;return v>0&&k>=(cfg.inicio||"0000-00")?v:0;}
+function cotaSemanal(D,k){const o=orcamento(D,k);if(o==null)return null;return Math.max(0,o/weeksOfMonth(k).length-gorduraSemana(D,k));}
 function semana(D,mon){
   const k=monthOfWeek(mon);const o=orcamento(D,k);const n=weeksOfMonth(k).length;
-  return {k,cota:o==null?null:o/n,gasto:sum(gastosEntre(D,ymd(mon),ymd(addDays(mon,6))).filter(g=>!parcelado(g)).map(g=>g.valor)),n,idx:weeksOfMonth(k).findIndex(w=>ymd(w)===ymd(mon))+1};
+  return {k,cota:o==null?null:cotaSemanal(D,k),gordura:gorduraSemana(D,k),gasto:sum(gastosEntre(D,ymd(mon),ymd(addDays(mon,6))).filter(g=>!parcelado(g)).map(g=>g.valor)),n,idx:weeksOfMonth(k).findIndex(w=>ymd(w)===ymd(mon))+1};
 }
 function saldoAte(D,mon){
   const st=inicioControle(D);
@@ -1232,7 +1242,7 @@ function relatorio(D,k,hojeIn){
     const mi=metas.find(m=>m.id==="investimento");if(mi&&!mi.ruim&&mi.valor>0)d.push({t:"ok",x:`Investimento planejado de ${brl(mi.valor)} (${Math.round(mi.pct)}% do salário, meta de ${mi.meta}%).`});}
   if(anterior&&!parcial&&anterior.pct!=null)d.push({t:"info",x:`Os gastos das semanas ficaram ${Math.abs(Math.round(anterior.pct*100))}% ${anterior.delta>=0?"maiores":"menores"} que em ${MESES[Number(anterior.mes.slice(5))-1]} (${brl(anterior.gasto)}).`});
   return {mes:k,titulo:mesNome(k),parcial,tipo:parcial?"parcial":"final",ate:ymd(hoje),diaFechamento:diaFechamento(D),
-    periodo:{de:ymd(per.de),ate:ymd(per.ate)},salario:sal,sobra:sb,orcamento:orc,nSemanas:n,
+    periodo:{de:ymd(per.de),ate:ymd(per.ate)},salario:sal,sobra:sb,orcamento:orc,nSemanas:n,porSemana:cotaSemanal(D,k),gordura:gorduraSemana(D,k),
     gastos:{total,qtd:gs.length,porCategoria,porPessoa,cartao:r2(total-px),pix:px,maiores},parceladas,
     semanas,projecao,fatura:fat,contas,metas,anterior,destaques:d};
 }
@@ -1252,7 +1262,7 @@ function resumoTexto(R){
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
   tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,ehAssinatura,assinaturasMes,parcelasMes,contasNoCartao,contasCartaoFixas,contasCartaoOutras,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
-  metasPatrimonio,liberado,extraParaInvestir,custoVida,janelaCompra,planoDesejos,OPC_VEZES,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
+  metasPatrimonio,liberado,extraParaInvestir,custoVida,janelaCompra,planoDesejos,OPC_VEZES,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,gorduraSemana,cotaSemanal,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
 
@@ -1449,7 +1459,7 @@ function htmlRelatorio(R){
   /* números */
   const inv=R.metas?R.metas.find(m=>m.id==="investimento"):null;
   h.push(`<div class="kpis">
-    <div class="kpi"><span>Sobra planejada</span><b class="${R.sobra!=null&&R.sobra<0?"neg":""}">${R.sobra!=null?brl0(R.sobra):"–"}</b><small>${o!=null?`${brl0(o/R.nSemanas)} por semana`:"sem orçamento"}</small></div>
+    <div class="kpi"><span>Sobra planejada</span><b class="${R.sobra!=null&&R.sobra<0?"neg":""}">${R.sobra!=null?brl0(R.sobra):"–"}</b><small>${o!=null?`${brl0(R.porSemana)} por semana`:"sem orçamento"}</small></div>
     <div class="kpi"><span>Fatura prevista</span><b>${brl0(R.fatura.total)}</b><small>${R.fatura.aPagar>0?`${brl0(R.fatura.aPagar)} a pagar na fatura`:"gastos já pagos na fatura"}</small></div>
     <div class="kpi"><span>Contas pagas</span><b>${R.contas.pagas} de ${R.contas.qtd}</b><small>${brl0(R.contas.pago)} de ${brl0(R.contas.total)}</small></div>
     <div class="kpi"><span>Investimento</span><b>${inv?brl0(inv.valor):"–"}</b><small>${inv?`${Math.round(inv.pct)}% do salário`:"sem salário"}</small></div></div>`);
@@ -1524,7 +1534,7 @@ function renderPainelAno(){
       const ruim=(s==="investimento"||s==="sobra")?d<-1:d>1;
       return `<tr><td><i class="dot" style="background:var(--c-${s})"></i>${n}</td><td>${Math.round(p)}%</td><td>${m}%</td><td style="color:var(${ruim?"--warn":"--petrol"})">${d>0?"+":""}${Math.round(d)} p.p.</td></tr>`;}).join("")}</tbody></table><p class="small muted" style="margin:10px 0 0">Média ${com.length===12?"do ano":`dos ${com.length} meses com dados`}. Em vermelho, o que está pior que a meta. As metas podem ser mudadas em Ajustes.</p>`:`<p class="empty">Nenhum mês de ${ano} tem salário e contas cadastrados.</p>`;
   $("geralMeses").innerHTML=com.length?`<table class="tbl"><thead><tr><th>Mês</th><th>Investe</th><th>Cartão</th><th>Sobra</th><th>Por semana</th></tr></thead><tbody>${ms.map((k,i)=>{const q=qs[i];if(!q)return "";const o=orcamento(k);const n=weeksOfMonth(k).length;
-      return `<tr data-k="${k}"><td>${mesCurto(k)}</td><td>${brl0(q.investimento)}</td><td style="color:var(${q.cartao/q.sal*100>M.cartao?"--warn":"--ink"})">${brl0(q.cartao)}</td><td style="color:var(${q.sobra<0?"--warn":"--ink"})">${brl0(q.sobra)}</td><td>${o!=null?brl0(o/n):"—"}<span class="muted small"> ×${n}</span></td></tr>`;}).join("")}</tbody></table>`:"";
+      return `<tr data-k="${k}"><td>${mesCurto(k)}</td><td>${brl0(q.investimento)}</td><td style="color:var(${q.cartao/q.sal*100>M.cartao?"--warn":"--ink"})">${brl0(q.cartao)}</td><td style="color:var(${q.sobra<0?"--warn":"--ink"})">${brl0(q.sobra)}</td><td>${o!=null?brl0(Core.cotaSemanal(S,k)):"—"}<span class="muted small"> ×${n}</span></td></tr>`;}).join("")}</tbody></table>`:"";
 }
 function rolarGeral(){const c=$("geralChart");c.scrollLeft=ui.ano===String(today.getFullYear())?Math.max(0,(today.getMonth()-3)*46*c.scrollWidth/(12*46+20)):0;}
 function renderPainel(){
@@ -1556,7 +1566,7 @@ function renderAno(){
     const ws=weeksOfMonth(k);const gasto=sum(Core.gastosDoMes(S,k).map(g=>g.valor));
     const nz=v=>v?v:null;
     return {k,sal,fixa:nz(fixaTot),diversos:nz(diversos),investimento:nz(investimento),cartao:nz(cartao),fatura:nz(faturaPrev),fixasCartao:nz(fixasCartao),itens:nz(itens),desp:nz(desp),sobra:sb,
-      porSemana:o!=null?o/n:null,n,gasto,qtd:cs.length,pagas:cs.filter(c=>c.paga).length};});
+      porSemana:o!=null?Core.cotaSemanal(S,k):null,n,gasto,qtd:cs.length,pagas:cs.filter(c=>c.paga).length};});
   const comSal=T.filter(t=>t.sal);const tot=f=>sum(comSal.map(t=>t[f]||0));
   const salAno=tot("sal"),despAno=tot("desp"),invAno=tot("investimento"),sobraAno=sum(comSal.map(t=>t.sobra||0));
   const qtd=sum(T.map(t=>t.qtd)),pagas=sum(T.map(t=>t.pagas));
@@ -1685,7 +1695,7 @@ function renderCartao(){renderFolga();
     t+=acima.length?`<p style="color:var(--warn)">O cartão fica acima da meta em ${plural(acima.length,"mês","meses")}, chegando a ${brl0(Math.max(...acima.map(x=>x.tot)))} em ${mesCurto(acima.reduce((a,b)=>b.tot>a.tot?b:a).k)}.</p>`:`<p style="color:var(--petrol)">O cartão continua dentro da meta em todos os meses afetados.</p>`;
     if(acima.length&&ui.sTipo!=="assinatura"){const c=Core.capacidade(S,sim.inicio,sim.total);
       t+=c&&c.parcelaMax>=1?`<p class="small">Para caber na meta, a parcela máxima em ${sim.total}x seria ${brl0(c.parcelaMax)} (compra de até ${brl0(c.totalMax)}).</p>`:`<p class="small">Nesse prazo não há folga na meta. ${(()=>{const q=Core.quandoCabe(S,sim.inicio,sim.total);return q?`Com a 1ª parcela em ${mesCurto(q.inicio)} ou depois, cabe até ${brl0(q.parcelaMax)} por parcela${(()=>{const m=Core.opcaoConfortavel(S,sim.inicio,sim.total);return m?` (e até ${brl0(m.parcelaMax)} a partir de ${mesCurto(m.inicio)})`:"";})()}.`:"";})()}</p>`;}
-    if(sob.length)t+=`<p class="small muted">Orçamento semanal depois da compra: ${sob.slice(0,3).map(x=>`${mesCurto(x.k)} ${brl0(x.s)} (${brl0(x.s/weeksOfMonth(x.k).length)} por semana)`).join("; ")}.</p>`;
+    if(sob.length)t+=`<p class="small muted">Orçamento semanal depois da compra: ${sob.slice(0,3).map(x=>`${mesCurto(x.k)} ${brl0(x.s)} (${brl0(Math.max(0,x.s/weeksOfMonth(x.k).length-Core.gorduraSemana(S,x.k)))} por semana)`).join("; ")}.</p>`;
     $("simResultado").innerHTML=t;
   }else $("simResultado").innerHTML=`<p class="small muted">Preencha o valor para ver o impacto no gráfico e no orçamento das semanas.</p>`;
   $("sAdd").disabled=!(sim&&sim.nome);
@@ -1720,7 +1730,7 @@ function renderContas(){
     <div class="resumo-chips">
       <button type="button" data-mes-ed><span>Salário</span><b>${sal?brl0(sal):"definir"}</b></button>
       <button type="button" data-mes-ed><span>Sobra do mês</span><b class="${sb!=null&&sb<0?"neg":""}">${sb!=null?brl0(sb):"–"}</b></button>
-      <button type="button" data-mes-ed><span>Por semana</span><b>${orc!=null?brl0(orc/nw):"–"}</b></button></div></div>`;
+      <button type="button" data-mes-ed><span>Por semana</span><b>${orc!=null?brl0(Core.cotaSemanal(S,k)):"–"}</b></button></div></div>`;
   const nPagar=cs.filter(c=>!c.paga).length;
   $("contasFiltro").innerHTML=[["todas",`Todas (${cs.length})`],["pagar",`A pagar (${nPagar})`],["pagas",`Pagas (${cs.length-nPagar})`]].map(([v,t])=>`<button type="button" data-f="${v}" aria-pressed="${ui.cf===v}">${t}</button>`).join("");
   const passa=c=>ui.cf==="todas"||(ui.cf==="pagar"?!c.paga:!!c.paga);
@@ -1765,7 +1775,7 @@ function renderAjustes(){
   const set=(id,v)=>{if(a!==$(id))$(id).value=v;};
   set("cInicio",S.config.inicio||"");set("cAjuste",S.config.ajusteInicial!=null?fmtInput(Number(S.config.ajusteInicial)):"");set("cNomes",pessoas().join(", "));
   set("mtFixa",M.fixa);set("mtDiversos",M.diversos);set("mtCartao",M.cartao);set("mtInvest",M.investimento);set("mtSobra",M.sobra);
-  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");const rs=S.config.reserva||{};set("cResMeses",String(Number(rs.meses)||6));set("cResCusto",Number(rs.custo)>0?fmtInput(Number(rs.custo)):"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
+  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");const gd=S.config.gordura==null?{valor:50,inicio:"2026-11"}:S.config.gordura;set("cGordura",fmtInput(Number(gd.valor)||0));{const sel=$("cGorduraIni"),base=monthKey(new Date());const ops=new Set([gd.inicio||"2026-11",...Array.from({length:25},(_,i)=>addMonths(base,i-6))]);sel.innerHTML=[...ops].sort().map(k=>`<option value="${k}">${mesNome(k)}</option>`).join("");sel.value=gd.inicio||"2026-11";}const rs=S.config.reserva||{};set("cResMeses",String(Number(rs.meses)||6));set("cResCusto",Number(rs.custo)>0?fmtInput(Number(rs.custo)):"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
 }
 function somaMetas(){const t=["mtFixa","mtDiversos","mtCartao","mtInvest","mtSobra"].reduce((s,id)=>s+(Number($(id).value)||0),0);
   $("mtSoma").textContent=t+"%";$("mtSoma").classList.toggle("ruim",t!==100);}
@@ -2567,7 +2577,7 @@ $("cSalvar").onclick=async()=>{
   const metas={fixa:n("mtFixa"),diversos:n("mtDiversos"),cartao:n("mtCartao"),investimento:n("mtInvest"),sobra:n("mtSobra")};
   const emails=[...new Set($("cEmails").value.split(/[,;\s]+/).map(s=>s.trim().toLowerCase()).filter(s=>/^\S+@\S+\.\S+$/.test(s)))];
   const fecha=parseInt($("cFecha").value,10);
-  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),reserva:{meses:(()=>{const v=money($("cResMeses").value);return v>0?v:6;})(),custo:(()=>{const v=money($("cResCusto").value);return v>0?r2(v):null;})()},metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
+  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),gordura:{valor:(()=>{const v=money($("cGordura").value);return v>0?r2(v):0;})(),inicio:$("cGorduraIni").value||"2026-11"},reserva:{meses:(()=>{const v=money($("cResMeses").value);return v>0?v:6;})(),custo:(()=>{const v=money($("cResCusto").value);return v>0?r2(v):null;})()},metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
   const ok=await write(()=>db.doc("config/geral").set(cfg),"Ajustes salvos.");if(ok)fechar("sheetAjustes");};
 $("bkBaixar").onclick=()=>{
   const limpa=arr=>Object.fromEntries(arr.map(d=>{const x={...d};const id=x.id;delete x.id;return [id,x];}));
