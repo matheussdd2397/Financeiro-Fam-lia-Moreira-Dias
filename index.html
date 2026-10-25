@@ -483,6 +483,57 @@ li.arrastando{position:relative;z-index:4;background:var(--surface);box-shadow:0
 li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
 .ds-feito{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--petrol);color:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:.85rem}
 .ds-tag{font-size:.72rem;color:var(--muted);margin-left:4px}
+
+/* ===== lista de compras ===== */
+.cm-add{display:flex;gap:8px;margin:12px 0}
+.cm-add input{flex:1;min-width:0}
+.cm-add .btn{flex:0 0 52px;font-size:1.4rem;padding:0}
+.cm-loja{margin:6px 0 10px}
+.cm-loja>span{display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px}
+.cm-lista{padding:2px 0}
+.cm-cat{display:flex;justify-content:space-between;align-items:baseline;margin:0;padding:10px 12px 6px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;background:var(--paper)}
+.cm-cat span{text-transform:none;letter-spacing:0;font-weight:600}
+ul.cm-ul{list-style:none;margin:0;padding:0}
+li.cm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+li.cm-item.ok .cm-nome{color:var(--muted)}
+.cm-chk{flex:0 0 28px;width:28px;height:28px;border-radius:50%;border:2px solid var(--muted);background:var(--surface);color:var(--surface);font-weight:800;cursor:pointer;padding:0}
+.cm-chk[aria-pressed="true"]{background:var(--petrol);border-color:var(--petrol)}
+.cm-main{flex:1;min-width:0;cursor:pointer}
+.cm-nome{font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.cm-sub{font-size:.76rem;color:var(--muted);line-height:1.3;margin-top:2px}
+.cm-var{font-weight:700;margin-left:4px}
+.cm-var.sobe{color:var(--warn)}.cm-var.desce{color:var(--petrol)}
+.cm-qtd{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.cm-qtd button{width:28px;height:30px;border:1px solid var(--line);background:var(--paper);border-radius:8px;color:var(--ink);font-size:1rem;cursor:pointer;padding:0}
+.cm-qtd span{min-width:24px;text-align:center;font-variant-numeric:tabular-nums;font-size:.86rem}
+input.cm-preco{flex:0 0 74px;width:74px;text-align:right;font:inherit;font-variant-numeric:tabular-nums;padding:8px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)}
+input.cm-preco:focus{border-color:var(--petrol);outline:2px solid var(--petrol-soft);background:var(--surface)}
+.cm-bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:4px}
+.cm-bar i{display:block;height:100%;background:var(--petrol)}
+.cm-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cm-acoes .btn{flex:1 1 140px}
+
+/* barra com 8 abas */
+nav.tabs button svg{padding:3px 6px}
+nav.tabs button span{font-size:.62rem;letter-spacing:-.01em}
+@media (max-width:370px){nav.tabs button svg{padding:3px 4px}nav.tabs button span{font-size:.56rem}}
+@media (max-width:330px){nav.tabs button span{font-size:.52rem;letter-spacing:-.02em}}
+
+.cm-selo{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:.72rem;background:rgba(255,255,255,.22);font-weight:700;letter-spacing:0;text-transform:none}
+.cm-selo.aberta{background:rgba(255,255,255,.12);font-weight:600}
+.cm-bar.dupla{position:relative;background:rgba(255,255,255,.2)}
+.cm-bar.dupla i{position:absolute;left:0;top:0;bottom:0;background:#fff}
+.cm-bar.dupla i.prev{background:rgba(255,255,255,.45)}
+.cm-final{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.cm-catrow{position:relative;padding:8px 0;border-bottom:1px solid var(--line)}
+.cm-catrow:last-of-type{border-bottom:0}
+.cm-media{position:absolute;top:38px;width:3px;height:16px;margin-left:-1px;background:var(--ink);border-radius:2px}
+/* olho dos investimentos */
+.env{position:relative}
+.olho{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.olho svg{width:22px;height:22px}
+.inv-oculto{filter:blur(9px);pointer-events:none;user-select:none;-webkit-user-select:none}
+.inv-aviso{margin:14px 0 0;text-align:center}
 </style>
 </head>
 <body class="deslogado">
@@ -608,8 +659,21 @@ li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
   <!-- INVESTIMENTOS -->
   <section id="tab-invest" hidden>
     <div id="invHero"></div>
+    <p class="small muted inv-aviso" id="invAviso" hidden>Os valores estão escondidos. Toque no olho para ver.</p>
     <div class="kpis" id="invKpis"></div>
     <div id="invCorpo"></div>
+  </section>
+
+  <!-- LISTA DE COMPRAS -->
+  <section id="tab-compras" hidden>
+    <div class="weeknav">
+      <button id="cmPrev" aria-label="Mês anterior">‹</button>
+      <div class="lbl" id="cmLabel"></div>
+      <button id="cmNext" aria-label="Próximo mês">›</button>
+    </div>
+    <div id="cmTopo"></div>
+    <div class="seg segmini" id="cmModo" role="group" aria-label="O que ver" style="margin:12px 0 8px"><button type="button" data-v="lista" aria-pressed="true">Lista</button><button type="button" data-v="comparar" aria-pressed="false">Comparar</button><button type="button" data-v="relatorio" aria-pressed="false">Relatório</button></div>
+    <div id="cmCorpo"></div>
   </section>
 
   <!-- DESEJOS -->
@@ -649,6 +713,7 @@ li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
   <button role="tab" data-tab="ano" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M3.5 14h17M9 4v16"/></svg><span>Ano</span></button>
   <button role="tab" data-tab="cartao" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span>Cartão</span></button>
   <button role="tab" data-tab="contas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 7 2 2 3.5-3.5M4 15l2 2 3.5-3.5M13 8h7M13 16h7"/></svg><span>Contas</span></button>
+  <button role="tab" data-tab="compras" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h7.9a1.5 1.5 0 0 0 1.5-1.1L20 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><span>Compras</span></button>
   <button role="tab" data-tab="invest" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5 9 12l3.5 3.5L20.5 7"/><path d="M15 7h5.5v5.5"/></svg><span>Invest.</span></button>
   <button role="tab" data-tab="desejos" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-7.5-10.1A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.8c0 5.7-7.5 10.1-7.5 10.1z"/></svg><span>Desejos</span></button>
 </nav>
@@ -823,6 +888,23 @@ li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
   </div>
 </div></dialog>
 
+<dialog class="sheet" id="sheetItemCompra" aria-labelledby="ciTitulo"><div class="sheet-in">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head"><h2 id="ciTitulo">Item</h2><button class="x" data-fechar="sheetItemCompra" aria-label="Fechar">✕</button></div>
+  <div class="grid">
+    <div class="full"><label for="ciNome">Item</label><input id="ciNome" type="text" autocomplete="off"></div>
+    <div class="m2"><label for="ciQtd">Quantidade</label><input id="ciQtd" type="text" inputmode="decimal" autocomplete="off"></div>
+    <div class="m2"><label>Vendido por</label><div class="seg" id="ciUn"><button type="button" data-v="un" aria-pressed="true">unidade</button><button type="button" data-v="kg" aria-pressed="false">kg</button></div></div>
+    <div class="m2"><label for="ciPreco" id="ciPrecoLbl">Preço por unidade (R$)</label><input id="ciPreco" type="text" inputmode="decimal" autocomplete="off"></div>
+    <div class="m2"><label for="ciLocal">Onde comprou</label><select id="ciLocal"></select></div>
+    <div class="full"><label for="ciCat">Categoria</label><select id="ciCat"></select></div>
+    <div class="full"><label class="check big"><input type="checkbox" id="ciComprado"> <span>Já comprado</span></label></div>
+    <div class="full"><p class="small muted" id="ciInfo" style="margin:0"></p></div>
+    <div class="full"><button class="btn" id="ciSalvar" style="width:100%">Salvar</button></div>
+    <div class="full"><button class="btn ghost danger" id="ciApagar" style="width:100%">Tirar da lista</button></div>
+  </div>
+</div></dialog>
+
 <dialog class="sheet" id="sheetMes" aria-labelledby="smTitulo"><div class="sheet-in">
   <div class="sheet-grip"></div>
   <div class="sheet-head"><h2 id="smTitulo">Salário e orçamento</h2><button class="x" data-fechar="sheetMes" aria-label="Fechar">✕</button></div>
@@ -862,6 +944,11 @@ li.arrastando .ds-grip{cursor:grabbing;color:var(--petrol)}
   <div class="grid">
     <div class="m2"><label for="cMetaPrim">Primeira meta (R$)</label><input id="cMetaPrim" type="text" inputmode="decimal" autocomplete="off" placeholder="100.000"></div>
     <div class="m2"><label for="cMetaPasso">Depois, a cada (R$)</label><input id="cMetaPasso" type="text" inputmode="decimal" autocomplete="off" placeholder="50.000"></div>
+  </div>
+  <h3 class="aj-h">Lista de compras</h3>
+  <div class="grid">
+    <div class="full"><label for="cMercados">Mercados e lojas (separados por vírgula)</label><input id="cMercados" type="text" autocomplete="off" placeholder="Stok, Atacadão, GB Mix, Amazon"></div>
+    <div class="full"><label for="cContaCompras">Linha das Contas com o valor reservado para o mercado</label><select id="cContaCompras"></select></div>
   </div>
   <h3 class="aj-h">Margem de segurança da semana</h3>
   <div class="grid">
@@ -1191,6 +1278,86 @@ function planoDesejos(D,hojeStr,lista){
   return out;
 }
 
+/* ====== LISTA DE COMPRAS ======
+   item (D.compras): {mes,nome,qtd,unidade:"un"|"kg",preco (por unidade),local,categoria,comprado,data,ordem,criado} */
+const MERCADOS_PADRAO=["Stok","Atacadão","GB Mix","Amazon"];
+const mercadosDe=D=>{const m=(D.config||{}).mercados;return Array.isArray(m)&&m.length?m:MERCADOS_PADRAO;};
+const semAcento=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const prodKey=nome=>semAcento(nome).replace(/[^a-z0-9]+/g," ").trim();
+const CAT_COMPRAS=[
+ ["Hortifruti",["banana","maca","tomate","alface","batata","cebola","alho","cenoura","limao","laranja","mamao","abacate","abobora","pepino","pimentao","uva","melancia","melao","morango","manga","fruta","verdura","legume","cheiro verde","couve","brocolis","repolho","beterraba","chuchu","mandioca","aipim"]],
+ ["Carnes",["carne","frango","peixe","linguica","bife","patinho","acem","costela","file","picanha","alcatra","coxa","sobrecoxa","peito","moida","hamburguer","salsicha","bacon","tilapia","sardinha fresca","porco","lombo"]],
+ ["Frios e laticínios",["leite","queijo","presunto","iogurte","manteiga","requeijao","ovo","creme de leite","mussarela","margarina","nata","coalhada"]],
+ ["Padaria",["pao","bolo","torrada","bisnaguinha","sonho","rosca"]],
+ ["Bebidas",["agua","refrigerante","suco","cerveja","vinho","cha ","energetico","isotonico","coca"]],
+ ["Limpeza",["detergente","sabao","amaciante","desinfetante","sanitaria","esponja","papel toalha","saco de lixo","multiuso","alcool","limpador","lustra","vassoura","rodo","pano","cloro","tira manchas","lava roupa"]],
+ ["Higiene",["shampoo","xampu","condicionador","sabonete","pasta de dente","creme dental","papel higienico","desodorante","absorvente","fio dental","escova","cotonete","fralda","lenco","protetor solar","hidratante","aparelho de barbear","gilete"]],
+ ["Pets",["racao","areia","petisco","sache","pet"]],
+ ["Mercearia",["arroz","feijao","macarrao","acucar","cafe","oleo","azeite","farinha","sal","molho","biscoito","bolacha","aveia","milho","atum","sardinha","achocolatado","tempero","fuba","massa","granola","mel","geleia","ketchup","maionese","mostarda","vinagre","extrato","leite condensado","gelatina","pipoca","amendoim","castanha","chocolate","cereal","lentilha","grao de bico"]]];
+const CATS_COMPRAS=["Hortifruti","Carnes","Frios e laticínios","Padaria","Mercearia","Bebidas","Limpeza","Higiene","Pets","Outros"];
+function categoriaDe(nome){const n=" "+prodKey(nome)+" ";for(const [c,ks] of CAT_COMPRAS)if(ks.some(k=>n.includes(" "+k.trim()+(k.endsWith(" ")?" ":""))||n.includes(" "+k.trim())))return c;return "Outros";}
+/* tamanho da embalagem lido do nome: "Arroz 5kg", "Leite 1L", "Café 500g" → em kg ou litros */
+function tamanhoDe(nome){const m=semAcento(nome).match(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l|lt|litros?)\b/);if(!m)return null;let q=parseFloat(m[1].replace(",","."));const u0=m[2];let u;
+  if(u0==="g"){q/=1000;u="kg";}else if(u0==="ml"){q/=1000;u="L";}else if(u0==="kg")u="kg";else u="L";return q>0?{q,u}:null;}
+const baseKey=nome=>prodKey(semAcento(nome).replace(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l|lt|litros?)\b/g," "));
+const qtdItem=it=>Number(it.qtd)>0?Number(it.qtd):1;
+const totalItem=it=>qtdItem(it)*(Number(it.preco)||0);
+const itensCompra=(D,k)=>(D.compras||[]).filter(x=>x.mes===k);
+function historicoCompras(D){const h={};(D.compras||[]).filter(x=>x.comprado&&Number(x.preco)>0).forEach(x=>{const p=prodKey(x.nome);(h[p]=h[p]||[]).push({mes:x.mes,preco:Number(x.preco),local:x.local||"",nome:x.nome,data:x.data||""});});
+  Object.values(h).forEach(a=>a.sort((a,b)=>(a.mes+a.data).localeCompare(b.mes+b.data)));return h;}
+/* último preço conhecido de um produto antes de um mês (opcionalmente num mercado) */
+function ultimoPreco(hist,p,antesDe,local){const a=(hist[p]||[]).filter(x=>x.mes<antesDe&&(!local||x.local===local));return a.length?a[a.length-1]:null;}
+/* mês mais recente antes de k que tem itens (para copiar a lista) */
+/* meses com a compra finalizada: config.comprasFim = {"2026-10":"2026-10-28", "2026-11":null (reaberto)} */
+const comprasFim=D=>{const f=(D.config||{}).comprasFim||{};return Object.fromEntries(Object.entries(f).filter(([,v])=>!!v));};
+function antFinalizado(D,k){const f=comprasFim(D),ms=Object.keys(f).filter(m=>m<k&&(D.compras||[]).some(x=>x.mes===m&&x.comprado)).sort();return ms.length?ms[ms.length-1]:null;}
+function mesAnteriorComItens(D,k){const ms=[...new Set((D.compras||[]).map(x=>x.mes))].filter(m=>m<k).sort();return ms.length?ms[ms.length-1]:null;}
+function resumoCompras(D,k){
+  const its=itensCompra(D,k),hist=historicoCompras(D),comp=its.filter(x=>x.comprado),pend=its.filter(x=>!x.comprado),lojas=mercadosDe(D);
+  const total=r2(sum(comp.map(totalItem)));const porLocal={},porCat={};
+  comp.forEach(x=>{const l=x.local||"Sem local",c=x.categoria||categoriaDe(x.nome);porLocal[l]=(porLocal[l]||0)+totalItem(x);porCat[c]=(porCat[c]||0)+totalItem(x);});
+  const prox=addMonths(k,1),estimar=x=>{const u=ultimoPreco(hist,prodKey(x.nome),prox);return u?u.preco*qtdItem(x):null;};
+  const estPend=r2(sum(pend.map(x=>estimar(x)||0))),pendSemPreco=pend.filter(x=>estimar(x)==null).length;
+  /* mês anterior: os mesmos produtos, preço por unidade */
+  const catDe=x=>x.categoria||categoriaDe(x.nome),fim=comprasFim(D);
+  /* preço por item: compara com o último mês que teve compras (o preço vale mesmo com a lista incompleta) */
+  const ant=mesAnteriorComItens(D,k),prevMap={};if(ant)itensCompra(D,ant).filter(x=>x.comprado&&Number(x.preco)>0).forEach(x=>{prevMap[prodKey(x.nome)]=x;});
+  const comuns=comp.filter(x=>Number(x.preco)>0&&prevMap[prodKey(x.nome)]).map(x=>{const a=prevMap[prodKey(x.nome)];return {nome:x.nome,cat:catDe(x),qtd:qtdItem(x),antes:Number(a.preco),agora:Number(x.preco),pct:(Number(x.preco)-Number(a.preco))/Number(a.preco),localAntes:a.local||"",local:x.local||""};});
+  const cAntes=sum(comuns.map(c=>c.antes)),cAgora=sum(comuns.map(c=>c.agora));
+  /* total e categorias: só contra meses FINALIZADOS (um mês pela metade pareceria "econômico") */
+  const antF=antFinalizado(D,k),totalAnt=antF?r2(sum(itensCompra(D,antF).filter(x=>x.comprado).map(totalItem))):null;
+  const somaCat=m=>{const o={};itensCompra(D,m).filter(x=>x.comprado).forEach(x=>{const c=catDe(x);o[c]=(o[c]||0)+totalItem(x);});return o;};
+  const finais=Object.keys(fim).filter(m=>m<k&&itensCompra(D,m).some(x=>x.comprado)).sort().slice(-3),cAnt=antF?somaCat(antF):{},medias={};
+  finais.forEach(m=>{Object.entries(somaCat(m)).forEach(([c,v])=>{medias[c]=(medias[c]||0)+v/finais.length;});});
+  const cats=[...new Set([...Object.keys(porCat),...Object.keys(cAnt),...Object.keys(medias)])].map(c=>({cat:c,agora:r2(porCat[c]||0),antes:antF?r2(cAnt[c]||0):null,media:finais.length?r2(medias[c]||0):null,share:total>0?(porCat[c]||0)/total:0,
+    itensTop:comp.filter(x=>catDe(x)===c).map(x=>({nome:x.nome,total:r2(totalItem(x))})).sort((a,b)=>b.total-a.total).slice(0,3)})).sort((a,b)=>b.agora-a.agora||(b.media||0)-(a.media||0));
+  /* onde dá para melhorar: categoria pelo menos 10% e R$ 20 acima da média, com os itens que mais encareceram nela */
+  const melhorar=cats.filter(c=>c.media>0&&c.agora-c.media>=20&&c.agora/c.media-1>=0.10).map(c=>({...c,acima:r2(c.agora-c.media),pct:c.agora/c.media-1,
+    subiram:comuns.filter(s=>s.cat===c.cat&&s.pct>0.02).map(s=>({...s,efeito:r2((s.agora-s.antes)*s.qtd)})).sort((a,b)=>b.efeito-a.efeito).slice(0,3)})).sort((a,b)=>b.acima-a.acima);
+  /* comparação entre mercados: preço mais recente de cada mercado nos últimos 3 meses */
+  const recente=(p,l)=>{const a=(hist[p]||[]).filter(x=>x.local===l&&x.mes>=addMonths(k,-3)&&x.mes<=k);return a.length?a[a.length-1].preco:null;};
+  const vistos=new Set(),porItem=[];
+  its.forEach(x=>{const p=prodKey(x.nome);if(vistos.has(p))return;vistos.add(p);const precos=lojas.map(l=>({local:l,preco:recente(p,l)})).filter(o=>o.preco!=null);if(precos.length<2)return;
+    const best=precos.reduce((m,o)=>o.preco<m.preco?o:m),pago=x.comprado&&Number(x.preco)>0?{local:x.local||"",preco:Number(x.preco)}:null;
+    porItem.push({nome:x.nome,qtd:qtdItem(x),precos,best,pago,economia:pago?r2(Math.max(0,(pago.preco-best.preco)*qtdItem(x))):0});});
+  const economia=r2(sum(porItem.map(m=>m.economia)));
+  /* índice de preço por mercado: quanto, em média, cada um fica acima do mais barato (só itens com preço em 2+ mercados) */
+  const indice=lojas.map(l=>{const r=porItem.map(m=>{const o=m.precos.find(q=>q.local===l);return o?o.preco/m.best.preco:null;}).filter(v=>v!=null);return {local:l,n:r.length,acima:r.length?sum(r)/r.length-1:null};}).filter(x=>x.n>0).sort((a,b)=>a.acima-b.acima);
+  /* embalagem que compensa: o mesmo produto em tamanhos diferentes, pelo preço por kg ou litro */
+  const grupos={};Object.values(hist).flat().forEach(h=>{const t=tamanhoDe(h.nome);if(!t)return;const b=baseKey(h.nome)+"|"+t.u;const g=grupos[b]=grupos[b]||{};const kk=t.q+"";if(!g[kk]||g[kk].mes<=h.mes)g[kk]={...h,porU:h.preco/t.q,tam:t};});
+  const embalagem=Object.entries(grupos).map(([b,g])=>{const v=Object.values(g);if(v.length<2)return null;v.sort((a,c)=>a.porU-c.porU);return {base:b.split("|")[0],u:b.split("|")[1],melhor:v[0],pior:v[v.length-1],dif:v[v.length-1].porU/v[0].porU-1,todos:v};}).filter(x=>x&&x.dif>0.02).sort((a,b)=>b.dif-a.dif);
+  return {k,ant,antF,final:!!fim[k],fimEm:fim[k]||null,nFinais:finais.length,cats,melhorar,itens:its,comprados:comp.length,pendentes:pend.length,total,porLocal,porCat,estPend,pendSemPreco,totalAnt,
+    cesta:{n:comuns.length,antes:r2(cAntes),agora:r2(cAgora),pct:cAntes>0?cAgora/cAntes-1:null},subiram:comuns.filter(c=>c.pct>0.001).sort((a,b)=>b.pct-a.pct),cairam:comuns.filter(c=>c.pct<-0.001).sort((a,b)=>a.pct-b.pct),
+    porItem,economia,indice,embalagem};
+}
+/* série mensal: total comprado por mercado, e índice da cesta (os mesmos itens, encadeado mês a mês, começa em 100) */
+function serieCompras(D,ate,n){const ms=Array.from({length:n},(_,i)=>addMonths(ate,i-n+1)),fim=comprasFim(D);let idx=100,ant=null;
+  return ms.map(k=>{const comp=itensCompra(D,k).filter(x=>x.comprado),porLocal={};comp.forEach(x=>{const l=x.local||"Sem local";porLocal[l]=(porLocal[l]||0)+totalItem(x);});
+    const map={};comp.filter(x=>Number(x.preco)>0).forEach(x=>{map[prodKey(x.nome)]=Number(x.preco);});
+    if(ant){const c=Object.keys(map).filter(p=>ant[p]!=null);if(c.length){idx*=sum(c.map(p=>map[p]))/sum(c.map(p=>ant[p]));}}
+    const temDados=Object.keys(map).length>0;if(temDados)ant=map;
+    return {k,total:r2(sum(comp.map(totalItem))),porLocal,indice:temDados?idx:null,final:!!fim[k]};});}
+
 /* --- relatório do mês --- */
 function relatorio(D,k,hojeIn){
   const hoje=new Date(hojeIn.getFullYear(),hojeIn.getMonth(),hojeIn.getDate());
@@ -1262,7 +1429,7 @@ function resumoTexto(R){
 }
 return {pad,ymd,parse,addDays,monthKey,mondayOf,monthOfWeek,addMonths,diffMonths,weeksOfMonth,sum,r2,slug,MESES,MABR,mesNome,mesCurto,brl,brl0,dm,
   tipoDe,formaDe,parcelado,itemNoMes,infoParcela,valorRestante,ultimoMes,contasMes,cartaoItens,ehAssinatura,assinaturasMes,parcelasMes,contasNoCartao,contasCartaoFixas,contasCartaoOutras,fatura,salario,salarioRef,saidaMes,sobra,orcamento,gastosEntre,inicioControle,
-  metasPatrimonio,liberado,extraParaInvestir,custoVida,janelaCompra,planoDesejos,OPC_VEZES,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,gorduraSemana,cotaSemanal,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
+  metasPatrimonio,liberado,extraParaInvestir,custoVida,janelaCompra,planoDesejos,OPC_VEZES,TIPOS_INV,KINDS_PROV,modoDe,moedaDe,cambioMedio,posicao,carteira,MERCADOS_PADRAO,mercadosDe,prodKey,CATS_COMPRAS,categoriaDe,tamanhoDe,baseKey,qtdItem,totalItem,itensCompra,historicoCompras,ultimoPreco,mesAnteriorComItens,comprasFim,antFinalizado,resumoCompras,serieCompras,gorduraSemana,cotaSemanal,salarioBase,folgaCartao,capacidade,quandoCabe,inicioComFolga,opcaoConfortavel,veredito,semana,saldoAte,periodoMes,gastosDoMes,parceladasDoMes,diaFechamento,primeiraParcela,SERIES,METAS_PADRAO,metasDe,quebraMes,relatorio,resumoTexto};
 })();
 
 
@@ -1284,7 +1451,7 @@ const newId=p=>`${p}-${Date.now().toString(36)}${Math.random().toString(36).slic
 
 /* ---------- estado ---------- */
 const today=new Date();
-const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],loaded:new Set(),readonly:false};
+const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],loaded:new Set(),readonly:false};
 const ui={tab:"semana",week:mondayOf(today),mes:monthKey(today),ano:String(today.getFullYear()),pm:monthKey(today),pv:"mes",cf:"todas",df:"todos",libBase:null,cm:(()=>{try{return localStorage.getItem("nm-contas-modo")||"lista";}catch(e){return "lista";}})(),
   quem:store.get("nm-quem"),forma:store.get("nm-forma")==="pix"?"pix":"cartao",parc:false,sTipo:"parcela"};
 let db=null;let nomeUsuario="";
@@ -1767,7 +1934,7 @@ function renderPlanilhaContas(k){
   const sb=sobra(k);h+=`<tr class="tot"><td>Sobra do mês</td><td class="num ${sb<0?"neg":""}">${brl(sb)}</td><td></td></tr></tbody></table></div>
     <p class="sec-note">Toque num valor e digite: salva quando você sai do campo ou aperta Enter (e já pula para o próximo). Toque no nome para editar a conta inteira. Para ver todos os meses lado a lado, use a aba Ano.</p>`;
   box.innerHTML=h;
-  if(foco){const el=[...box.querySelectorAll(".plv")].find(x=>x.dataset.c===foco.id);if(el){el.value=foco.val;el.focus();try{el.setSelectionRange(foco.sel,foco.sel);}catch(e){}}}
+  if(foco){const el=[...box.querySelectorAll(".plv")].find(x=>x.dataset.c===foco.id);if(el){el.value=foco.val;el.dataset.refoco="1";el.focus();try{el.setSelectionRange(foco.sel,foco.sel);}catch(e){}}}
 }
 
 function renderAjustes(){
@@ -1775,7 +1942,7 @@ function renderAjustes(){
   const set=(id,v)=>{if(a!==$(id))$(id).value=v;};
   set("cInicio",S.config.inicio||"");set("cAjuste",S.config.ajusteInicial!=null?fmtInput(Number(S.config.ajusteInicial)):"");set("cNomes",pessoas().join(", "));
   set("mtFixa",M.fixa);set("mtDiversos",M.diversos);set("mtCartao",M.cartao);set("mtInvest",M.investimento);set("mtSobra",M.sobra);
-  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");const gd=S.config.gordura==null?{valor:50,inicio:"2026-11"}:S.config.gordura;set("cGordura",fmtInput(Number(gd.valor)||0));{const sel=$("cGorduraIni"),base=monthKey(new Date());const ops=new Set([gd.inicio||"2026-11",...Array.from({length:25},(_,i)=>addMonths(base,i-6))]);sel.innerHTML=[...ops].sort().map(k=>`<option value="${k}">${mesNome(k)}</option>`).join("");sel.value=gd.inicio||"2026-11";}const rs=S.config.reserva||{};set("cResMeses",String(Number(rs.meses)||6));set("cResCusto",Number(rs.custo)>0?fmtInput(Number(rs.custo)):"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
+  set("cEmails",(S.config.emails||[]).join(", "));set("cBrapi",S.config.brapiToken||"");set("cDolar",S.config.dolar?fmtInput(Number(S.config.dolar)):"");set("cFinnhub",S.config.finnhubToken||"");set("cMercados",Core.mercadosDe(S).join(", "));{const nomes=[...new Set(S.contas.map(c=>c.nome))].sort((a,b)=>a.localeCompare(b));const sel=$("cContaCompras");sel.innerHTML=`<option value="">Automático (a que se chama Comida ou Mercado)</option>`+nomes.map(n=>`<option>${esc(n)}</option>`).join("");sel.value=nomes.includes(S.config.comprasConta)?S.config.comprasConta:"";}const gd=S.config.gordura==null?{valor:50,inicio:"2026-11"}:S.config.gordura;set("cGordura",fmtInput(Number(gd.valor)||0));{const sel=$("cGorduraIni"),base=monthKey(new Date());const ops=new Set([gd.inicio||"2026-11",...Array.from({length:25},(_,i)=>addMonths(base,i-6))]);sel.innerHTML=[...ops].sort().map(k=>`<option value="${k}">${mesNome(k)}</option>`).join("");sel.value=gd.inicio||"2026-11";}const rs=S.config.reserva||{};set("cResMeses",String(Number(rs.meses)||6));set("cResCusto",Number(rs.custo)>0?fmtInput(Number(rs.custo)):"");const mi=S.config.metasInvest||{};set("cMetaPrim",fmtInput(Number(mi.primeira)||100000));set("cMetaPasso",fmtInput(Number(mi.passo)||50000));set("cFecha",Core.diaFechamento(S));somaMetas();
 }
 function somaMetas(){const t=["mtFixa","mtDiversos","mtCartao","mtInvest","mtSobra"].reduce((s,id)=>s+(Number($(id).value)||0),0);
   $("mtSoma").textContent=t+"%";$("mtSoma").classList.toggle("ruim",t!==100);}
@@ -1783,7 +1950,7 @@ function somaMetas(){const t=["mtFixa","mtDiversos","mtCartao","mtInvest","mtSob
 function render(){
   const ready=["gastos","cartao","contas","meses","config"].every(x=>S.loaded.has(x));
   $("status").textContent=db?((nomeUsuario?`Oi, ${nomeUsuario}. `:"")+(ready?"Tudo sincronizado.":"Carregando os dados…")):"Sem conexão com os dados.";
-  renderQuem();renderForma();renderSemana();renderPainel();renderAno();renderCartao();renderContas();renderInvest();renderDesejos();renderAjustes();
+  renderQuem();renderForma();renderSemana();renderPainel();renderAno();renderCartao();renderContas();renderInvest();renderDesejos();renderCompras();renderAjustes();
 }
 
 /* ================= Investimentos ================= */
@@ -1813,6 +1980,10 @@ const linhaAtivo=x=>{const a=x.a,p=x.p,t=TI[a.tipo]||TI.outro,usd=p.moeda==="USD
   return `<li class="tap" data-at="${esc(a.id)}"><span class="ico" aria-hidden="true">${t.ico}</span><div class="li-main"><div class="t">${esc(nomeAtivo(a))}<span class="pill">${t.nome}</span>${aviso}</div><div class="s">${sub}</div>
     <div class="invchips">${p.semCotacao?"":`<span class="res ${p.resultado>=0?"pos":"neg"}">${sgn(p.resultado)}${pcTxt(p.resPct)}</span>`}${p.prov>0?`<span class="provchip">💰 ${brl0(p.prov)}</span>`:""}</div></div><span class="amt">${brl(p.valor)}${usd?`<small class="muted" style="display:block;font-weight:400;font-size:.76rem">${usdF(p.nat.valor)}</small>`:""}</span></li>`;};
 
+/* olho: os valores começam escondidos e só aparecem quando você toca (a escolha fica salva neste aparelho) */
+const invOculto=()=>{try{return localStorage.getItem("nm-inv-oculto")!=="0";}catch(e){return true;}};
+const IC_OLHO=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const IC_OLHO_FECHADO=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17.7 17.7 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.5 4.5-1.2"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>`;
 function renderInvest(){
   const hoje=ymd(new Date());const C=Core.carteira(S,hoje);const T=C.tot;
   if(!S.invest.length){
@@ -1820,7 +1991,11 @@ function renderInvest(){
     $("invKpis").innerHTML="";
     $("invCorpo").innerHTML=`<div class="card" style="margin-top:14px"><p style="margin:0 0 10px">Aqui ficam o seu patrimônio, os dividendos, JCP e rendimentos, e quanto cada ativo está rendendo.</p><p class="small muted" style="margin:0 0 12px">Você pode lançar à mão (botão <b>+ Lançar</b>) ou me mandar o extrato do Inter que eu preparo um arquivo com tudo, para você importar em Ajustes.</p><button class="btn" data-ia="novo" style="width:100%">Lançar o primeiro ativo</button></div>`;
     return;}
-  $("invHero").innerHTML=`<div class="env${T.resultado<0?" neg":""}">${guilloche}<p class="env-label">Patrimônio investido</p><div class="big num">${brl(T.valor)}</div>
+  const oc=invOculto(),olho=`<button type="button" class="olho" data-olho aria-pressed="${!oc}" aria-label="${oc?"Mostrar":"Esconder"} os valores dos investimentos">${oc?IC_OLHO_FECHADO:IC_OLHO}</button>`;
+  $("invKpis").classList.toggle("inv-oculto",oc);$("invCorpo").classList.toggle("inv-oculto",oc);$("invKpis").setAttribute("aria-hidden",String(oc));$("invCorpo").setAttribute("aria-hidden",String(oc));
+  $("invAviso").hidden=!oc;
+  if(oc){$("invHero").innerHTML=`<div class="env">${guilloche}${olho}<p class="env-label">Patrimônio investido</p><div class="big num">R$ ••••••</div><p class="env-sub">valores escondidos · toque no olho para ver</p></div>`;}
+  else $("invHero").innerHTML=`<div class="env${T.resultado<0?" neg":""}">${guilloche}${olho}<p class="env-label">Patrimônio investido</p><div class="big num">${brl(T.valor)}</div>
     <p class="env-sub">${T.custo>0?`custo de ${brl0(T.custo)}`:"sem posição aberta"}</p>
     <div class="env-chips"><span>${C.semCotacao&&C.semCotacao>=C.ativos.length?"resultado: faltam os valores atuais":`resultado ${sgn(T.resultado)}${pcTxt(T.resPct)}${C.semCotacao?` · ${C.semCotacao} sem preço`:""}`}</span><span>💰 ${brl0(T.prov)} em proventos</span>${C.temUSD?`<span>💵 dólar R$ ${C.fx.ref.toFixed(2).replace(".",",")}${C.semDolar?" (estimado)":""}</span>`:""}</div></div>`;
   $("invKpis").innerHTML=`
@@ -1892,6 +2067,7 @@ function renderInvest(){
 }
 
 /* ---------- eventos da aba ---------- */
+$("tab-invest").addEventListener("click",e=>{if(!e.target.closest("[data-olho]"))return;const oc=invOculto();try{localStorage.setItem("nm-inv-oculto",oc?"0":"1");}catch(_){}renderInvest();});
 $("tab-invest").addEventListener("click",e=>{
   const at=e.target.closest("[data-at]");if(at){abrirAtivo(at.dataset.at);return;}
   const mv=e.target.closest("[data-mv]");if(mv){abrirInv({mov:mv.dataset.mv});return;}
@@ -2276,11 +2452,236 @@ async function desfazerCompra(id){const d=S.desejos.find(x=>x.id===id);if(!d)ret
   const ops=[{t:"merge",col:"desejos",id,data:{status:"ativo",compradoEm:null,pagoCom:null,ref:null}}];if(existe)ops.push({t:"del",col:r.col,id:r.id});
   await write(()=>aplicar(ops),"Voltou para a lista.");}
 
+/* ================= Lista de compras ================= */
+const ls=(k,d)=>{try{return localStorage.getItem(k)||d;}catch(e){return d;}},lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const cm={mes:monthKey(new Date()),modo:ls("nm-cm-modo","lista"),filtro:"todos",loja:ls("nm-cm-loja",""),prod:"",prox:null};
+const COR_LOJA=i=>`var(--k${i%12})`;
+const lojaCor=(l,lojas)=>{const i=lojas.indexOf(l);return i>=0?COR_LOJA(i):"var(--k7)";};
+const pctTx=v=>v==null?"–":`${v>0?"+":v<0?"−":""}${Math.abs(v*100).toLocaleString("pt-BR",{maximumFractionDigits:1})}%`;
+const fmtQtd=x=>{const q=Core.qtdItem(x);return x.unidade==="kg"?`${q.toLocaleString("pt-BR",{maximumFractionDigits:3})} kg`:String(q);};
+/* valor reservado para o mercado: sempre o da linha das Contas do mês (a escolhida em Ajustes, ou a que se chama Comida/Mercado) */
+function orcCompras(k){const cs=contasMes(k),nome=S.config.comprasConta;let c=nome?cs.find(c=>c.nome===nome):null;
+  if(!c)c=cs.find(c=>/comida|mercado|supermercado|feira|rancho/i.test(c.nome));return c?{valor:Number(c.valor),fonte:`conta ${c.nome}`}:null;}
+function renderCompras(){
+  const k=cm.mes,R=Core.resumoCompras(S,k),lojas=Core.mercadosDe(S),orc=orcCompras(k);
+  $("cmLabel").textContent=mesNome(k);
+  $("cmModo").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===cm.modo)));
+  const previsto=R.total+R.estPend,pc=orc?Math.min(1,R.total/orc.valor):0,pcP=orc?Math.min(1,previsto/orc.valor):0;
+  $("cmTopo").innerHTML=`<div class="env${orc&&previsto>orc.valor?" neg":""}">${guilloche}<p class="env-label">Compras de ${mesNome(k)} ${R.final?`<span class="cm-selo">✓ finalizada</span>`:R.itens.length?`<span class="cm-selo aberta">em andamento</span>`:""}</p><div class="big num">${brl(R.total)}</div>
+    <p class="env-sub">${R.itens.length?`${R.comprados} de ${R.itens.length} itens comprados`:"lista vazia"}</p>
+    ${orc?`<div class="cm-bar dupla" role="img" aria-label="Comprado ${brl0(R.total)} e previsto ${brl0(previsto)} de ${brl0(orc.valor)}"><i class="prev" style="width:${Math.round(pcP*100)}%"></i><i style="width:${Math.round(pc*100)}%"></i></div>
+      <p class="env-sub" style="margin-top:6px">Reservado nas Contas: <b>${brl0(orc.valor)}</b> (${esc(orc.fonte)})</p>`:`<p class="env-sub" style="margin-top:6px">Sem valor reservado: crie a linha "Comida" nas Contas (ou escolha a linha em Ajustes).</p>`}
+    ${R.pendentes?`<p class="env-sub">Previsto para a lista inteira: <b>${brl0(previsto)}</b>${R.pendSemPreco?` (+${plural(R.pendSemPreco,"item","itens")} sem preço anterior)`:""}${orc?(previsto>orc.valor?` · passa ${brl0(previsto-orc.valor)} do reservado`:` · sobram ${brl0(orc.valor-previsto)}`):""}</p>`:orc&&R.total>0?`<p class="env-sub">${R.total>orc.valor?`Passou ${brl0(R.total-orc.valor)} do reservado`:`Sobraram ${brl0(orc.valor-R.total)} do reservado`}</p>`:""}
+    <div class="env-chips">${R.totalAnt!=null&&R.total>0?`<span>${mesCurto(R.antF)} (finalizado): ${brl0(R.totalAnt)}</span>`:""}${R.cesta.n?`<span>os mesmos ${R.cesta.n} itens: ${pctTx(R.cesta.pct)}</span>`:""}${R.economia>0.5?`<span>dava para economizar ${brl0(R.economia)}</span>`:""}</div></div>`;
+  $("cmCorpo").innerHTML=cm.modo==="comparar"?htmlComparar(R,lojas):cm.modo==="relatorio"?htmlRelCompras(R,lojas,orc):htmlLista(R,lojas);
+  if(cm.modo==="comparar")desenharHistorico();
+}
+/* ---------- LISTA (para usar no mercado) ---------- */
+function htmlLista(R,lojas){
+  const k=cm.mes,its=R.itens,hist=Core.historicoCompras(S),ant=R.ant,ae=document.activeElement;
+  const sug=[...new Set(S.compras.map(x=>x.nome))].sort((a,b)=>a.localeCompare(b));
+  const keys=new Set(its.map(x=>Core.prodKey(x.nome))),faltamAnt=ant?Core.itensCompra(S,ant).filter((x,i,a)=>!keys.has(Core.prodKey(x.nome))&&a.findIndex(y=>Core.prodKey(y.nome)===Core.prodKey(x.nome))===i):[];
+  let h=`<div class="cm-add"><input id="cmNovo" type="text" list="cmSug" placeholder="Adicionar item (ex.: Arroz 5kg)" autocomplete="off" enterkeyhint="done" aria-label="Novo item"><button type="button" class="btn" id="cmAdd" aria-label="Adicionar">+</button></div><datalist id="cmSug">${sug.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>`;
+  if(faltamAnt.length)h+=`<div class="card" style="margin-bottom:12px">${its.length?`<p class="small" style="margin:0 0 8px">${plural(faltamAnt.length,"item","itens")} de ${mesNome(ant)} ainda não ${faltamAnt.length===1?"está":"estão"} nesta lista.</p><button class="btn ghost" data-copiar="1" style="width:100%">Trazer ${plural(faltamAnt.length,"item","itens")} de ${mesCurto(ant)}</button>`:
+    `<p style="margin:0 0 8px">Comece pela lista de ${mesNome(ant)}: ${plural(faltamAnt.length,"item","itens")}, sem os preços (cada item mostra o preço anterior para comparar).</p><button class="btn" data-copiar="1" style="width:100%">Copiar a lista de ${mesCurto(ant)}</button>`}</div>`;
+  if(!its.length)return h+(faltamAnt.length?"":`<div class="card"><p style="margin:0 0 8px">Lista vazia. Escreva os itens acima (com o tamanho no nome, como "Arroz 5kg", para comparar embalagens).</p><p class="small muted" style="margin:0">No mercado: escolha onde estão, marque a bolinha e digite o preço. O Enter pula para o próximo item que falta. Com o campo vazio, o Enter usa o preço anterior.</p></div>`);
+  if(R.final)h+=`<div class="card cm-final"><p style="margin:0">✓ Compra de ${mesNome(k)} finalizada em ${dm(R.fimEm)}. Ela já entra nas comparações de total e de categoria.</p><button class="linkbtn" data-acao="reabrir">Reabrir</button></div>`;
+  h+=`<div class="cm-loja"><span>Onde estão comprando agora? (vale para os próximos itens marcados)</span><div class="chips" id="cmLojas">${lojas.map(l=>`<button type="button" data-loja="${esc(l)}" aria-pressed="${cm.loja===l}">${esc(l)}</button>`).join("")}</div></div>`;
+  const nF=its.filter(x=>!x.comprado).length;
+  h+=`<div class="chips filtro" id="cmFiltro">${[["todos",`Todos (${its.length})`],["falta",`Falta (${nF})`],["ok",`Comprados (${its.length-nF})`]].map(([v,t])=>`<button type="button" data-cf="${v}" aria-pressed="${cm.filtro===v}">${t}</button>`).join("")}</div>`;
+  const vis=its.filter(x=>cm.filtro==="todos"||(cm.filtro==="falta"?!x.comprado:x.comprado));
+  const row=x=>{const p=Core.prodKey(x.nome),u=Core.ultimoPreco(hist,p,k),pr=Number(x.preco)||0,q=Core.qtdItem(x);let vr="";
+    if(u&&pr>0){const d=pr/u.preco-1;if(Math.abs(d)>=0.005)vr=`<span class="cm-var ${d>0?"sobe":"desce"}">${d>0?"▲":"▼"} ${Math.abs(d*100).toFixed(0)}%</span>`;}
+    return `<li class="cm-item${x.comprado?" ok":""}"><button type="button" class="cm-chk" data-chk="${esc(x.id)}" aria-pressed="${!!x.comprado}" aria-label="${x.comprado?"Desmarcar":"Marcar"} ${esc(x.nome)}">${x.comprado?"✓":""}</button>
+      <div class="cm-main" data-ed="${esc(x.id)}"><div class="cm-nome">${esc(x.nome)}</div><div class="cm-sub">${u?`${mesCurto(u.mes)}: ${brl(u.preco)}${u.local?` · ${esc(u.local)}`:""}`:"sem preço anterior"}${vr}${x.comprado&&x.local?` · <b>${esc(x.local)}</b>`:""}${q!==1&&pr>0?` · = ${brl(q*pr)}`:""}</div></div>
+      <div class="cm-qtd"><button type="button" data-menos="${esc(x.id)}" aria-label="Diminuir ${esc(x.nome)}">−</button><span>${fmtQtd(x)}</span><button type="button" data-mais="${esc(x.id)}" aria-label="Aumentar ${esc(x.nome)}">+</button></div>
+      <input class="cm-preco" data-preco="${esc(x.id)}" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="${u?fmtInput(u.preco):"R$"}" value="${pr>0?fmtInput(pr):""}" aria-label="Preço de ${esc(x.nome)}${x.unidade==="kg"?" por kg":""}"></li>`;};
+  const porCat={};vis.forEach(x=>{const c=x.categoria||Core.categoriaDe(x.nome);(porCat[c]=porCat[c]||[]).push(x);});
+  h+=`<div class="card cm-lista">${Core.CATS_COMPRAS.filter(c=>porCat[c]).map(c=>{const arr=porCat[c].sort((a,b)=>(a.comprado?1:0)-(b.comprado?1:0)||(a.criado||0)-(b.criado||0)),tot=sum(arr.filter(x=>x.comprado).map(Core.totalItem));
+    return `<h3 class="cm-cat">${c}${tot>0?`<span>${brl(tot)}</span>`:""}</h3><ul class="cm-ul">${arr.map(row).join("")}</ul>`;}).join("")||`<p class="muted" style="padding:12px;margin:0">Nada aqui.</p>`}</div>
+    <p class="sec-note">Toque no nome para mudar quantidade em kg, categoria ou mercado. O preço é por unidade (ou por kg). ▲▼ compara com a última vez que vocês compraram o item.</p>`;
+  if(!R.final&&R.comprados)h+=`<div class="card" style="margin-top:12px"><button class="btn" data-acao="finalizar" style="width:100%">✓ Finalizar a compra de ${mesNome(k)}</button>
+    <p class="small muted" style="margin:8px 0 0">Finalize quando terminarem todas as idas ao mercado do mês. O total e as categorias só são comparados com meses finalizados (um mês pela metade pareceria "econômico"). A comparação de preço de cada item vale desde já.${R.pendentes?` Os itens que faltarem podem ir para a lista de ${mesNome(addMonths(k,1))}.`:""}</p></div>`;
+  return h;
+}
+const cmItem=id=>S.compras.find(x=>x.id===id);
+async function cmSalvarPreco(inp){const x=cmItem(inp.dataset.preco);if(!x)return;const t=inp.value.trim();if(t===""){return;}
+  const v=money(t);if(isNaN(v)||v<0){toast("Preço inválido.");inp.value=Number(x.preco)>0?fmtInput(Number(x.preco)):"";return;}
+  const d={preco:r2(v)};if(!x.comprado){d.comprado=true;d.data=ymd(new Date());}if(!x.local&&cm.loja)d.local=cm.loja;
+  if(Number(x.preco)===d.preco&&x.comprado&&(x.local||!cm.loja))return;await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:d}]));}
+async function cmAdicionar(){const inp=$("cmNovo");const nome=inp.value.trim();if(!nome)return;
+  const ja=Core.itensCompra(S,cm.mes).find(x=>Core.prodKey(x.nome)===Core.prodKey(nome));if(ja){toast(`"${ja.nome}" já está na lista.`);inp.value="";return;}
+  const ant=[...S.compras].filter(x=>Core.prodKey(x.nome)===Core.prodKey(nome)).sort((a,b)=>String(b.mes).localeCompare(String(a.mes)))[0];
+  const id=`c-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`;
+  await write(()=>aplicar([{t:"set",col:"compras",id,data:{mes:cm.mes,nome,qtd:ant?Core.qtdItem(ant):1,unidade:ant&&ant.unidade==="kg"?"kg":"un",categoria:ant&&ant.categoria?ant.categoria:Core.categoriaDe(nome),comprado:false,criado:Date.now()}}]));
+  setTimeout(()=>{const n=$("cmNovo");if(n){n.value="";n.focus();}},60);}
+async function cmCopiar(){const ant=Core.mesAnteriorComItens(S,cm.mes);if(!ant)return;const keys=new Set(Core.itensCompra(S,cm.mes).map(x=>Core.prodKey(x.nome))),vistos=new Set(),ops=[];let i=0;
+  Core.itensCompra(S,ant).forEach(x=>{const p=Core.prodKey(x.nome);if(keys.has(p)||vistos.has(p))return;vistos.add(p);
+    ops.push({t:"set",col:"compras",id:`c-${Date.now().toString(36)}${(i++).toString(36)}${Math.random().toString(36).slice(2,4)}`,data:{mes:cm.mes,nome:x.nome,qtd:Core.qtdItem(x),unidade:x.unidade==="kg"?"kg":"un",categoria:x.categoria||Core.categoriaDe(x.nome),comprado:false,criado:Date.now()+i}});});
+  if(ops.length)await write(()=>aplicar(ops),`${plural(ops.length,"item copiado","itens copiados")} de ${mesNome(ant)}.`);}
+$("tab-compras").addEventListener("click",async e=>{
+  const t=e.target;
+  if(t.closest("#cmPrev")){cm.mes=addMonths(cm.mes,-1);renderCompras();return;}
+  if(t.closest("#cmNext")){cm.mes=addMonths(cm.mes,1);renderCompras();return;}
+  const mo=t.closest("#cmModo button");if(mo){cm.modo=mo.dataset.v;lsSet("nm-cm-modo",cm.modo);renderCompras();return;}
+  if(t.closest("#cmAdd")){cmAdicionar();return;}
+  if(t.closest("[data-copiar]")){cmCopiar();return;}
+  const lj=t.closest("[data-loja]");if(lj){cm.loja=lj.dataset.loja;lsSet("nm-cm-loja",cm.loja);renderCompras();return;}   /* escolha única: tocar de novo não desmarca */
+  const cf=t.closest("[data-cf]");if(cf){cm.filtro=cf.dataset.cf;renderCompras();return;}
+  const ck=t.closest("[data-chk]");if(ck){const x=cmItem(ck.dataset.chk);if(!x)return;
+    if(x.comprado){await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:{comprado:false}}]));return;}
+    const d={comprado:true,data:ymd(new Date())};if(!x.local&&cm.loja)d.local=cm.loja;await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:d}]));
+    if(!(Number(x.preco)>0))setTimeout(()=>{const el=[...document.querySelectorAll("#cmCorpo [data-preco]")].find(i=>i.dataset.preco===x.id);if(el)el.focus();},80);return;}
+  const mn=t.closest("[data-menos]"),ms=t.closest("[data-mais]");if(mn||ms){const x=cmItem((mn||ms).dataset[mn?"menos":"mais"]);if(!x)return;const passo=x.unidade==="kg"?0.5:1,q=Core.qtdItem(x);
+    const nq=Math.max(passo,Math.round((q+(ms?passo:-passo))*1000)/1000);if(nq!==q)await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:{qtd:nq}}]));return;}
+  const ed=t.closest("[data-ed]");if(ed){abrirItemCompra(ed.dataset.ed);return;}
+  const hb=t.closest("[data-acao]");if(hb){if(hb.dataset.acao==="finalizar")cmFinalizar();if(hb.dataset.acao==="reabrir")cmReabrir();if(hb.dataset.acao==="compartilhar")compartilharCompras();if(hb.dataset.acao==="imprimir")imprimirCompras();}});
+$("tab-compras").addEventListener("change",e=>{const p=e.target.closest("[data-preco]");if(p)cmSalvarPreco(p);
+  if(e.target.id==="cmProd"){cm.prod=e.target.value;desenharHistorico();}});
+$("tab-compras").addEventListener("keydown",e=>{
+  if(e.target.id==="cmNovo"&&e.key==="Enter"){e.preventDefault();cmAdicionar();return;}
+  const p=e.target.closest("[data-preco]");if(!p||e.key!=="Enter")return;e.preventDefault();
+  if(p.value.trim()===""&&p.placeholder&&p.placeholder!=="R$")p.value=p.placeholder;   /* Enter vazio = mesmo preço da última vez */
+  cmSalvarPreco(p);   /* salva aqui: valor colocado pelo código não dispara o evento "change" */
+  const todos=[...document.querySelectorAll("#cmCorpo [data-preco]")],i=todos.indexOf(p);
+  const prox=todos.slice(i+1).find(el=>{const x=cmItem(el.dataset.preco);return x&&!x.comprado;});cm.prox=prox?prox.dataset.preco:null;p.blur();
+  setTimeout(()=>{if(!cm.prox)return;const el=[...document.querySelectorAll("#cmCorpo [data-preco]")].find(x=>x.dataset.preco===cm.prox);cm.prox=null;if(el)el.focus();},90);});
+/* selecionar tudo só quando a pessoa toca no campo; quando o app devolve o foco depois de redesenhar, não (senão a próxima tecla apaga o que foi digitado) */
+/* seleciona tudo NA HORA do toque (nunca depois: uma seleção atrasada, no meio da digitação, faria a próxima tecla apagar o que já foi digitado) */
+$("tab-compras").addEventListener("focusin",e=>{const p=e.target.closest("[data-preco]");if(!p)return;if(p.dataset.refoco){delete p.dataset.refoco;return;}try{p.select();}catch(_){}p.dataset.manter="1";});
+/* o navegador desfaz a seleção ao soltar o dedo; isso a mantém, uma vez */
+$("tab-compras").addEventListener("mouseup",e=>{const p=e.target.closest("[data-preco]");if(p&&p.dataset.manter){e.preventDefault();delete p.dataset.manter;}});
+$("tab-compras").addEventListener("input",e=>{const p=e.target.closest("[data-preco]");if(p)delete p.dataset.manter;});
+/* mantém o foco e o que está sendo digitado quando a lista é redesenhada */
+const _renderCompras=renderCompras;
+renderCompras=function(){const ae=document.activeElement,sel=el=>({s:el.selectionStart,e:el.selectionEnd});
+  const foco=ae&&ae.dataset&&ae.dataset.preco&&$("cmCorpo").contains(ae)?{id:ae.dataset.preco,v:ae.value,...sel(ae)}:null,novoFoco=ae&&ae.id==="cmNovo"?{v:ae.value,...sel(ae)}:null;
+  _renderCompras();
+  const volta=(el,f)=>{el.value=f.v;el.dataset.refoco="1";el.focus();try{el.setSelectionRange(f.s,f.e);}catch(_){}};
+  if(foco){const el=[...document.querySelectorAll("#cmCorpo [data-preco]")].find(x=>x.dataset.preco===foco.id);if(el)volta(el,foco);}
+  if(novoFoco){const n=$("cmNovo");if(n)volta(n,novoFoco);}};
+/* ---------- finalizar / reabrir o mês ---------- */
+const fimMap=()=>({...((S.config||{}).comprasFim||{})});
+async function cmFinalizar(){const k=cm.mes,its=Core.itensCompra(S,k),pend=its.filter(x=>!x.comprado),tot=sum(its.filter(x=>x.comprado).map(Core.totalItem));
+  if(!its.some(x=>x.comprado)){toast("Marque pelo menos um item como comprado.");return;}
+  if(!confirm(`Finalizar a compra de ${mesNome(k)}? ${plural(its.length-pend.length,"item comprado","itens comprados")}, ${brl(tot)}.`))return;
+  const ops=[{t:"merge",col:"config",id:"geral",data:{comprasFim:{...fimMap(),[k]:ymd(new Date())}}}],prox=addMonths(k,1);let levou=0;
+  if(pend.length&&confirm(`${plural(pend.length,"item ficou","itens ficaram")} sem comprar (${pend.slice(0,4).map(x=>x.nome).join(", ")}${pend.length>4?"…":""}). Levar para a lista de ${mesNome(prox)}?`)){
+    const keys=new Set(Core.itensCompra(S,prox).map(x=>Core.prodKey(x.nome)));
+    pend.forEach((x,i)=>{if(keys.has(Core.prodKey(x.nome)))return;levou++;ops.push({t:"set",col:"compras",id:`c-${Date.now().toString(36)}${i.toString(36)}${Math.random().toString(36).slice(2,4)}`,data:{mes:prox,nome:x.nome,qtd:Core.qtdItem(x),unidade:x.unidade==="kg"?"kg":"un",categoria:x.categoria||Core.categoriaDe(x.nome),comprado:false,criado:Date.now()+i,veioDe:k}});});}
+  await write(()=>aplicar(ops),`Compra de ${mesNome(k)} finalizada.${levou?` ${plural(levou,"item foi","itens foram")} para ${mesNome(prox)}.`:""}`);}
+async function cmReabrir(){const k=cm.mes;if(!confirm(`Reabrir a compra de ${mesNome(k)}? Ela sai das comparações de total e de categoria até ser finalizada de novo.`))return;
+  await write(()=>aplicar([{t:"merge",col:"config",id:"geral",data:{comprasFim:{...fimMap(),[k]:null}}}]),"Compra reaberta.");}
+
+/* ---------- folha do item ---------- */
+let ciSel=null,ciUn="un";
+const ciUnLayout=()=>{$("ciUn").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===ciUn)));$("ciPrecoLbl").textContent=ciUn==="kg"?"Preço por kg (R$)":"Preço por unidade (R$)";};
+$("ciUn").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;ciUn=b.dataset.v;ciUnLayout();});
+function abrirItemCompra(id){const x=cmItem(id);if(!x)return;ciSel=id;ciUn=x.unidade==="kg"?"kg":"un";
+  $("ciTitulo").textContent=x.nome;$("ciNome").value=x.nome;$("ciQtd").value=String(Core.qtdItem(x)).replace(".",",");$("ciPreco").value=Number(x.preco)>0?fmtInput(Number(x.preco)):"";
+  const lojas=Core.mercadosDe(S);$("ciLocal").innerHTML=`<option value="">—</option>`+[...new Set([...lojas,...(x.local&&!lojas.includes(x.local)?[x.local]:[])])].map(l=>`<option>${esc(l)}</option>`).join("");$("ciLocal").value=x.local||"";
+  $("ciCat").innerHTML=Core.CATS_COMPRAS.map(c=>`<option>${c}</option>`).join("");$("ciCat").value=x.categoria||Core.categoriaDe(x.nome);$("ciComprado").checked=!!x.comprado;
+  const h=(Core.historicoCompras(S)[Core.prodKey(x.nome)]||[]).filter(y=>!(y.mes===x.mes&&y.nome===x.nome&&y.preco===Number(x.preco))).slice(-4).reverse();
+  $("ciInfo").innerHTML=h.length?"Últimas compras: "+h.map(y=>`${mesCurto(y.mes)} ${brl(y.preco)}${y.local?` (${esc(y.local)})`:""}`).join(" · "):"Primeira vez que este item aparece.";
+  ciUnLayout();abrir("sheetItemCompra");}
+$("ciSalvar").onclick=async()=>{const x=cmItem(ciSel);if(!x)return;const nome=$("ciNome").value.trim();if(!nome){toast("Digite o nome do item.");return;}
+  const q=money($("ciQtd").value),pr=$("ciPreco").value.trim()===""?null:money($("ciPreco").value);
+  if(!(q>0)){toast("Quantidade inválida.");return;}if(pr!=null&&(isNaN(pr)||pr<0)){toast("Preço inválido.");return;}
+  const d={nome,qtd:Math.round(q*1000)/1000,unidade:ciUn,preco:pr==null?null:r2(pr),local:$("ciLocal").value||null,categoria:$("ciCat").value,comprado:$("ciComprado").checked};
+  if(d.comprado&&!x.comprado)d.data=ymd(new Date());const ok=await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:d}]),"Item atualizado.");if(ok)fechar("sheetItemCompra");};
+$("ciApagar").onclick=async()=>{const x=cmItem(ciSel);if(!x||!confirm(`Tirar "${x.nome}" da lista de ${mesNome(x.mes)}?`))return;fechar("sheetItemCompra");await write(()=>aplicar([{t:"del",col:"compras",id:x.id}]),"Item retirado.");};
+
+/* ---------- COMPARAR ---------- */
+function htmlComparar(R,lojas){
+  if(!R.itens.length)return `<div class="card"><p style="margin:0">Sem itens em ${mesNome(R.k)} para comparar.</p></div>`;
+  const lin=c=>`<div class="semrow"><span>${esc(c.nome)}<small class="muted"> ${brl(c.antes)} → ${brl(c.agora)}</small></span><b class="cm-var ${c.pct>0?"sobe":"desce"}">${pctTx(c.pct)}</b></div>`;
+  let h=htmlCategorias(R);
+  h+=relSec(`Preços: ${mesNome(R.k)} x ${R.ant?mesNome(R.ant):"mês anterior"}`,`<div class="rel-card">${R.ant?`
+    ${R.totalAnt!=null?`<div class="semrow"><span>Total comprado (${mesCurto(R.antF)}, finalizado)</span><b>${brl0(R.totalAnt)} → ${brl0(R.total)}</b></div>`:""}
+    ${R.cesta.n?`<div class="semrow"><span>Os mesmos ${R.cesta.n} itens (preço por unidade)</span><b class="cm-var ${R.cesta.pct>0?"sobe":"desce"}">${pctTx(R.cesta.pct)}</b></div><p class="sec-note">É a "inflação da sua lista": compara só o que vocês compraram nos dois meses, para a diferença de quantidade não confundir.</p>`:`<p class="small muted">Ainda não há itens comprados nos dois meses para comparar preço.</p>`}
+    ${R.subiram.length?`<h3 class="aj-h" style="margin-top:12px">Subiram</h3>${R.subiram.slice(0,6).map(lin).join("")}`:""}
+    ${R.cairam.length?`<h3 class="aj-h" style="margin-top:12px">Caíram</h3>${R.cairam.slice(0,6).map(lin).join("")}`:""}`:`<p class="small muted" style="margin:0">Ainda não há um mês anterior com compras.</p>`}</div>`);
+  h+=relSec("Onde é mais barato",`<div class="rel-card">${R.indice.length?`
+    <p class="small" style="margin:0 0 8px">Quanto cada lugar fica acima do mais barato, em média (só itens com preço em 2 ou mais lugares nos últimos 3 meses):</p>
+    ${R.indice.map((x,i)=>`<div class="semrow"><span>${i===0?"🏆 ":""}${esc(x.local)}<small class="muted"> (${plural(x.n,"item","itens")})</small></span><b>${x.acima<0.0005?"o mais barato":"+"+(x.acima*100).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%"}</b></div><div class="cm-bar"><i style="width:${Math.min(100,Math.round(x.acima*100*4))}%;background:${lojaCor(x.local,lojas)}"></i></div>`).join("")}
+    ${R.economia>0.5?`<p style="margin:12px 0 0">Comprando cada item onde estava mais barato, ${mesNome(R.k)} teria saído <b>${brl(R.economia)}</b> mais barato.</p>`:""}
+    <details class="rel-det"><summary>Item por item (${R.porItem.length})</summary>${R.porItem.map(m=>`<div class="semrow"><span>${esc(m.nome)}<small class="muted"> ${m.precos.map(o=>`${esc(o.local)} ${brl(o.preco)}`).join(" · ")}</small></span><b>${esc(m.best.local)}</b></div>`).join("")}</details>`:
+    `<p class="small muted" style="margin:0">Quando o mesmo item tiver preço em dois lugares diferentes (nos últimos 3 meses), aparece aqui qual é o mais barato e quanto daria para economizar.</p>`}</div>`);
+  if(R.embalagem.length)h+=relSec("Embalagem que compensa",`<div class="rel-card">${R.embalagem.slice(0,8).map(e=>`<div class="semrow"><span>${esc(e.melhor.nome)}<small class="muted"> ${brl(e.melhor.porU)}/${e.u} contra ${brl(e.pior.porU)}/${e.u} em "${esc(e.pior.nome)}"</small></span><b>${Math.round(e.dif*100)}% mais barato</b></div>`).join("")}<p class="sec-note">Usa o tamanho escrito no nome (5kg, 500g, 1L, 2L…) para comparar o preço por kg ou por litro.</p></div>`);
+  const prods=[...new Set(S.compras.filter(x=>x.comprado&&Number(x.preco)>0).map(x=>x.nome))].sort((a,b)=>a.localeCompare(b));
+  if(!cm.prod&&prods.length)cm.prod=(R.subiram[0]||{}).nome||prods[0];
+  h+=relSec("Histórico de preço",`<div class="rel-card"><label for="cmProd" class="small muted">Produto</label><select id="cmProd">${prods.map(n=>`<option ${n===cm.prod?"selected":""}>${esc(n)}</option>`).join("")}</select><div class="chart sem" id="cmHist" style="margin-top:10px"></div></div>`);
+  return h;
+}
+function desenharHistorico(){const box=$("cmHist");if(!box)return;const hist=(Core.historicoCompras(S)[Core.prodKey(cm.prod)]||[]),lojas=Core.mercadosDe(S);
+  if(!hist.length){box.innerHTML=`<p class="small muted">Sem preços ainda.</p>`;return;}
+  const ms=[...new Set(hist.map(h=>h.mes))].sort(),W=340,H=170,l=34,r=10,t=14,bt=26,cw=W-l-r,ch=H-t-bt;
+  const vs=hist.map(h=>h.preco),mn=Math.min(...vs)*0.95,mx=Math.max(...vs)*1.05||1,x=k=>l+(ms.length===1?cw/2:ms.indexOf(k)*cw/(ms.length-1)),y=v=>t+ch-(v-mn)/(mx-mn||1)*ch;
+  const porLoja={};hist.forEach(h=>{const k=h.local||"—";(porLoja[k]=porLoja[k]||{})[h.mes]=h.preco;});
+  let g="";[mn,(mn+mx)/2,mx].forEach(v=>{g+=`<line x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${l-4}" y="${y(v)+3}" text-anchor="end" font-size="9" fill="var(--muted)" font-family="var(--sans)">${v.toFixed(2).replace(".",",")}</text>`;});
+  Object.entries(porLoja).forEach(([lj,o])=>{const cor=lojaCor(lj,lojas),pts=ms.filter(k=>o[k]!=null).map(k=>[x(k),y(o[k]),o[k]]);
+    if(pts.length>1)g+=`<polyline fill="none" stroke="${cor}" stroke-width="2.2" points="${pts.map(p=>p[0]+","+p[1]).join(" ")}"/>`;
+    pts.forEach(p=>{g+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${cor}"><title>${esc(lj)}: ${brl(p[2])}</title></circle>`;});});
+  ms.forEach(k=>{g+=`<text x="${x(k)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-family="var(--sans)">${mesCurto(k)}</text>`;});
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Histórico de preço de ${esc(cm.prod)}">${g}</svg><div class="legend" style="margin-top:6px">${Object.keys(porLoja).map(lj=>`<span><i style="background:${lojaCor(lj,lojas)}"></i>${esc(lj)}</span>`).join("")}</div>`;}
+
+function htmlCategorias(R){if(!R.cats.length)return "";const mx=Math.max(1,...R.cats.map(c=>Math.max(c.agora,c.media||0)));
+  const d=(a,b)=>b>0?pctTx(a/b-1):"novo";
+  let h=`<div class="rel-card">${!R.final?`<p class="small" style="margin:0 0 10px">⏳ ${mesNome(R.k)} ainda está em andamento: os valores por categoria podem crescer até vocês finalizarem.</p>`:""}
+    ${R.cats.map(c=>`<div class="cm-catrow"><div class="semrow"><span><b>${esc(c.cat)}</b><small class="muted"> ${Math.round(c.share*100)}% das compras</small></span><b>${brl0(c.agora)}</b></div>
+      <div class="cm-bar"><i style="width:${Math.round(c.agora/mx*100)}%"></i></div>${c.media!=null?`<div class="cm-media" style="left:${Math.min(100,Math.round(c.media/mx*100))}%" title="média"></div>`:""}
+      <p class="small muted" style="margin:4px 0 0">${c.antes!=null?`${mesCurto(R.antF)}: ${brl0(c.antes)} (${d(c.agora,c.antes)})`:""}${c.media!=null?`${c.antes!=null?" · ":""}média de ${R.nFinais} ${R.nFinais===1?"mês":"meses"}: ${brl0(c.media)} (${d(c.agora,c.media)})`:""}${c.itensTop.length?`${c.antes!=null||c.media!=null?" · ":""}mais caros: ${c.itensTop.map(i=>`${esc(i.nome)} ${brl0(i.total)}`).join(", ")}`:""}</p></div>`).join("")}
+    ${R.nFinais?`<p class="sec-note">A marca escura na barra é a média dos últimos meses finalizados.</p>`:`<p class="sec-note">Quando houver meses finalizados, cada categoria é comparada com a média deles.</p>`}</div>`;
+  let m="";if(R.melhorar.length)m=relSec("Onde dá para melhorar",`<div class="rel-card">${R.melhorar.map(c=>`<p style="margin:0 0 4px"><b>${esc(c.cat)}</b>: ${brl0(c.agora)}, ${brl0(c.acima)} acima da média (${pctTx(c.pct)}).</p>
+      <p class="small muted" style="margin:0 0 10px">${c.subiram.length?`Puxaram a alta: ${c.subiram.map(s=>`${esc(s.nome)} (${brl(s.antes)} → ${brl(s.agora)}, +${brl0(s.efeito)} no mês)`).join("; ")}. `:""}${c.agora-c.media-sum(c.subiram.map(s=>s.efeito))>5?"O resto veio de quantidade maior ou de itens novos nessa categoria.":""}</p>`).join("")}
+      <p class="sec-note">Aparece quando uma categoria fica pelo menos 10% e R$ 20 acima da média dos meses finalizados.</p></div>`);
+  return relSec("Em que vocês gastam mais",h)+m;}
+
+/* ---------- RELATÓRIO ---------- */
+function svgMesesCompras(serie,lojas){const W=340,H=180,top=20,bot=28,ch=H-top-bot,slot=W/serie.length,max=Math.max(1,...serie.map(s=>s.total)),y=v=>top+ch-(v/max)*ch;let g="";
+  serie.forEach((s,i)=>{const x=i*slot+slot/2,bw=Math.min(20,slot-6);let acc=0;
+    const ordem=[...lojas,...Object.keys(s.porLocal).filter(l=>!lojas.includes(l))];
+    ordem.forEach(l=>{const v=s.porLocal[l]||0;if(v>0){g+=`<rect x="${x-bw/2}" y="${y(acc+v)}" width="${bw}" height="${Math.max(1,y(acc)-y(acc+v))}" fill="${lojaCor(l,lojas)}"${s.final?"":` opacity=".4"`}><title>${mesCurto(s.k)}, ${esc(l)}: ${brl(v)}</title></rect>`;acc+=v;}});
+    if(s.total>0)g+=SVGT(x,y(s.total)-4,s.total>=1000?(s.total/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+"k":Math.round(s.total),`font-size="9.5" fill="var(--ink)"`);
+    g+=SVGT(x,H-12,MABR[Number(s.k.slice(5))-1],`font-size="9.5" fill="var(--muted)"`);});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Total de compras por mês e por mercado">${g}</svg>`;}
+function svgIndice(serie){const pts=serie.filter(s=>s.indice!=null);if(pts.length<2)return `<p class="small muted" style="margin:0">Aparece quando houver dois meses com itens repetidos.</p>`;
+  const W=340,H=150,l=34,r=10,t=14,bt=24,cw=W-l-r,ch=H-t-bt,vs=pts.map(p=>p.indice),mn=Math.min(98,...vs),mx=Math.max(102,...vs);
+  const x=i=>l+i*cw/(pts.length-1),y=v=>t+ch-(v-mn)/(mx-mn)*ch;let g=`<line x1="${l}" x2="${W-r}" y1="${y(100)}" y2="${y(100)}" stroke="var(--line)" stroke-dasharray="4 3"/><text x="${l-4}" y="${y(100)+3}" text-anchor="end" font-size="9" fill="var(--muted)" font-family="var(--sans)">100</text>`;
+  g+=`<polyline fill="none" stroke="var(--petrol)" stroke-width="2.4" points="${pts.map((p,i)=>x(i)+","+y(p.indice)).join(" ")}"/>`;
+  pts.forEach((p,i)=>{g+=`<circle cx="${x(i)}" cy="${y(p.indice)}" r="3.5" fill="var(--petrol)"/>`+SVGT(x(i),y(p.indice)-8,p.indice.toFixed(1).replace(".",","),`font-size="9" fill="var(--ink)"`)+SVGT(x(i),H-8,MABR[Number(p.k.slice(5))-1],`font-size="9.5" fill="var(--muted)"`);});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Inflação da lista de compras">${g}</svg>`;}
+function textoResumoCompras(R,orc){const L=[`🛒 Compras de ${mesNome(R.k)}${R.final?"":" (em andamento)"}`,`Total: ${brl(R.total)}${orc?` (reservado ${brl0(orc.valor)})`:""}`];if(R.cats.length)L.push("Por categoria: "+R.cats.filter(c=>c.agora>0).slice(0,5).map(c=>`${c.cat} ${brl0(c.agora)}`).join(" · "));if(R.melhorar.length)L.push("Acima da média: "+R.melhorar.map(c=>`${c.cat} +${brl0(c.acima)}`).join(", "));
+  const pl=Object.entries(R.porLocal).sort((a,b)=>b[1]-a[1]);if(pl.length)L.push("Por lugar: "+pl.map(([l,v])=>`${l} ${brl0(v)}`).join(" · "));
+  if(R.totalAnt!=null)L.push(`${mesNome(R.antF)}: ${brl0(R.totalAnt)}`);if(R.cesta.n)L.push(`Os mesmos ${R.cesta.n} itens: ${pctTx(R.cesta.pct)}`);
+  if(R.subiram.length)L.push("Subiram: "+R.subiram.slice(0,4).map(c=>`${c.nome} ${pctTx(c.pct)}`).join(", "));if(R.cairam.length)L.push("Caíram: "+R.cairam.slice(0,4).map(c=>`${c.nome} ${pctTx(c.pct)}`).join(", "));
+  if(R.indice.length)L.push(`Mais em conta: ${R.indice[0].local}`);if(R.economia>0.5)L.push(`Dava para economizar ${brl(R.economia)} comprando cada item no mais barato`);
+  if(R.pendentes)L.push(`Faltam ${plural(R.pendentes,"item","itens")}${R.estPend>0?` (cerca de ${brl0(R.estPend)}${R.pendSemPreco?`, mais ${R.pendSemPreco} sem preço anterior`:""})`:" (ainda sem preço anterior)"}`);return L.join("\n");}
+function htmlRelCompras(R,lojas,orc){const serie=Core.serieCompras(S,R.k,12),usados=[...new Set(serie.flatMap(s=>Object.keys(s.porLocal)))];
+  const cats=Object.entries(R.porCat).sort((a,b)=>b[1]-a[1]).map(([nome,valor],i)=>({nome,valor,cor:`var(--k${i%12})`}));
+  return relSec("Por mês e por lugar",`<div class="rel-card"><div class="chart sem">${svgMesesCompras(serie,lojas)}</div><div class="legend" style="margin-top:6px">${usados.map(l=>`<span><i style="background:${lojaCor(l,lojas)}"></i>${esc(l)}</span>`).join("")}</div><p class="sec-note">Barras claras: mês ainda não finalizado.</p></div>`)
+   +(cats.length?relSec(`Por categoria em ${mesNome(R.k)}`,`<div class="rel-card"><div class="donutbox">${svgDonut(cats,R.total).replace("gastos","compras")}<div class="leg">${cats.map(c=>`<div class="legrow"><i style="background:${c.cor}"></i><span>${esc(c.nome)}</span><b>${brl0(c.valor)}</b><em>${Math.round(c.valor/R.total*100)}%</em></div>`).join("")}</div></div></div>`):"")
+   +relSec("Inflação da sua lista",`<div class="rel-card"><div class="chart sem">${svgIndice(serie)}</div><p class="sec-note">Começa em 100 e acompanha o preço dos itens que se repetem de um mês para o outro. 103 quer dizer que a mesma lista ficou 3% mais cara.</p></div>`)
+   +relSec("Resumo",`<div class="rel-card"><pre class="cm-resumo" style="white-space:pre-wrap;font:inherit;margin:0">${esc(textoResumoCompras(R,orc))}</pre>
+      <div class="cm-acoes"><button class="btn" data-acao="compartilhar">Compartilhar resumo</button><button class="btn ghost" data-acao="imprimir">Imprimir / salvar PDF</button></div></div>`);}
+async function compartilharCompras(){const R=Core.resumoCompras(S,cm.mes),txt=textoResumoCompras(R,orcCompras(cm.mes));
+  try{if(navigator.share){await navigator.share({title:`Compras de ${mesNome(cm.mes)}`,text:txt});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+  try{await navigator.clipboard.writeText(txt);toast("Resumo copiado. É só colar no WhatsApp.");}catch(e){toast("Não consegui copiar. Selecione o texto do resumo e copie.");}}
+function imprimirCompras(){const R=Core.resumoCompras(S,cm.mes),orc=orcCompras(cm.mes),its=[...R.itens].sort((a,b)=>(a.categoria||"").localeCompare(b.categoria||"")||a.nome.localeCompare(b.nome));
+  const td='style="padding:4px 8px;border-bottom:1px solid #ddd"',tdr='style="padding:4px 8px;border-bottom:1px solid #ddd;text-align:right"';
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Compras de ${mesNome(R.k)}</title></head><body style="font-family:Arial,sans-serif;color:#1b2b2a;max-width:720px;margin:24px auto;padding:0 16px">
+    <h1 style="font-size:20px;margin:0 0 4px">Compras de ${mesNome(R.k)}</h1><p style="margin:0 0 16px;color:#555">Nosso mês · gerado em ${dm(ymd(new Date()))}</p>
+    <p style="white-space:pre-wrap;line-height:1.5">${esc(textoResumoCompras(R,orc))}</p>
+    <h2 style="font-size:16px;margin:20px 0 6px">Itens</h2><table style="border-collapse:collapse;width:100%;font-size:13px"><tr><th ${td}>Item</th><th ${td}>Categoria</th><th ${tdr}>Qtd</th><th ${tdr}>Preço</th><th ${tdr}>Total</th><th ${td}>Onde</th></tr>
+    ${its.map(x=>`<tr><td ${td}>${x.comprado?"✓ ":"☐ "}${esc(x.nome)}</td><td ${td}>${esc(x.categoria||Core.categoriaDe(x.nome))}</td><td ${tdr}>${fmtQtd(x)}</td><td ${tdr}>${Number(x.preco)>0?brl(Number(x.preco)):"–"}</td><td ${tdr}>${x.comprado&&Number(x.preco)>0?brl(Core.totalItem(x)):"–"}</td><td ${td}>${esc(x.local||"")}</td></tr>`).join("")}
+    <tr><td ${td} colspan="4"><b>Total comprado</b></td><td ${tdr}><b>${brl(R.total)}</b></td><td ${td}></td></tr></table></body></html>`;
+  const w=window.open("","_blank");if(!w){toast("O navegador bloqueou a janela de impressão.");return;}w.document.write(html);w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},300);}
+
 /* ================= eventos ================= */
 function atualizaFab(){const logado=!document.body.classList.contains("deslogado");
   $("fab").hidden=!logado||(ui.tab!=="semana"&&ui.tab!=="contas"&&ui.tab!=="invest"&&ui.tab!=="desejos");$("fabTxt").textContent=ui.tab==="contas"?"Conta":(ui.tab==="invest"?"Lançar":(ui.tab==="desejos"?"Desejo":"Gasto"));}
 function switchTab(t){ui.tab=t;document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===t)));
-  ["semana","painel","ano","cartao","contas","invest","desejos"].forEach(n=>$("tab-"+n).hidden=n!==t);
+  ["semana","painel","ano","cartao","contas","compras","invest","desejos"].forEach(n=>$("tab-"+n).hidden=n!==t);
   document.querySelector(".wrap").classList.toggle("largo",t==="ano");
   atualizaFab();if(t==="painel")renderPainel();window.scrollTo(0,0);
   if(t==="ano")rolarAno();
@@ -2541,7 +2942,9 @@ let plProx=null;
 pl.addEventListener("keydown",e=>{const v=e.target.closest(".plv");if(!v||e.key!=="Enter")return;e.preventDefault();
   const todos=[...pl.querySelectorAll(".plv")],i=todos.indexOf(v);plProx=i>=0&&i<todos.length-1?todos[i+1].dataset.c:null;v.blur();
   setTimeout(()=>{if(!plProx)return;const el=[...pl.querySelectorAll(".plv")].find(x=>x.dataset.c===plProx);plProx=null;if(el)el.focus();},80);});
-pl.addEventListener("focusin",e=>{const v=e.target.closest(".plv");if(v)setTimeout(()=>{try{v.select();}catch(_){}} ,0);});
+pl.addEventListener("focusin",e=>{const v=e.target.closest(".plv");if(!v)return;if(v.dataset.refoco){delete v.dataset.refoco;return;}try{v.select();}catch(_){}v.dataset.manter="1";});
+pl.addEventListener("mouseup",e=>{const v=e.target.closest(".plv");if(v&&v.dataset.manter){e.preventDefault();delete v.dataset.manter;}});
+pl.addEventListener("input",e=>{const v=e.target.closest(".plv");if(v)delete v.dataset.manter;});
 $("mCopiar").onclick=async()=>{const prev=contasMes(addMonths(ui.mes,-1));if(!prev.length)return;
   const ops=prev.map(c=>({t:"set",col:"contas",id:`${ui.mes}-${slug(c.nome)}-${Math.random().toString(36).slice(2,5)}`,data:{mes:ui.mes,nome:c.nome,valor:c.valor,tipo:tipoDe(c),noCartao:!!c.noCartao,paga:false,ordem:c.ordem??60}}));
   $("mCopiar").disabled=true;await write(()=>aplicar(ops),"Contas copiadas. Ajuste os valores que mudaram.");$("mCopiar").disabled=false;};
@@ -2577,11 +2980,11 @@ $("cSalvar").onclick=async()=>{
   const metas={fixa:n("mtFixa"),diversos:n("mtDiversos"),cartao:n("mtCartao"),investimento:n("mtInvest"),sobra:n("mtSobra")};
   const emails=[...new Set($("cEmails").value.split(/[,;\s]+/).map(s=>s.trim().toLowerCase()).filter(s=>/^\S+@\S+\.\S+$/.test(s)))];
   const fecha=parseInt($("cFecha").value,10);
-  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),gordura:{valor:(()=>{const v=money($("cGordura").value);return v>0?r2(v):0;})(),inicio:$("cGorduraIni").value||"2026-11"},reserva:{meses:(()=>{const v=money($("cResMeses").value);return v>0?v:6;})(),custo:(()=>{const v=money($("cResCusto").value);return v>0?r2(v):null;})()},metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
+  const cfg={...S.config,inicio:ini?ymd(mondayOf(parse(ini))):(S.config.inicio||ymd(mondayOf(today))),ajusteInicial:isNaN(aj)?0:aj,pessoas:nomes.length?nomes:pessoas(),metas,metaCartao:metas.cartao,emails,brapiToken:$("cBrapi").value.trim(),finnhubToken:$("cFinnhub").value.trim(),mercados:(()=>{const l=$("cMercados").value.split(",").map(x=>x.trim()).filter(Boolean);return l.length?l:null;})(),comprasConta:$("cContaCompras").value||null,gordura:{valor:(()=>{const v=money($("cGordura").value);return v>0?r2(v):0;})(),inicio:$("cGorduraIni").value||"2026-11"},reserva:{meses:(()=>{const v=money($("cResMeses").value);return v>0?v:6;})(),custo:(()=>{const v=money($("cResCusto").value);return v>0?r2(v):null;})()},metasInvest:{primeira:(()=>{const v=money($("cMetaPrim").value);return v>0?r2(v):100000;})(),passo:(()=>{const v=money($("cMetaPasso").value);return v>0?r2(v):50000;})()},dolar:(()=>{const d=money($("cDolar").value);return d>0?Math.round(d*10000)/10000:null;})(),dolarEm:(()=>{const d=money($("cDolar").value);return d>0?(Math.abs(d-Number(S.config.dolar||0))<1e-9&&S.config.dolarEm?S.config.dolarEm:ymd(new Date())):null;})(),diaFechamento:fecha>=1&&fecha<=28?fecha:26};
   const ok=await write(()=>db.doc("config/geral").set(cfg),"Ajustes salvos.");if(ok)fechar("sheetAjustes");};
 $("bkBaixar").onclick=()=>{
   const limpa=arr=>Object.fromEntries(arr.map(d=>{const x={...d};const id=x.id;delete x.id;return [id,x];}));
-  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov),desejos:limpa(S.desejos)}};
+  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov),desejos:limpa(S.desejos),compras:limpa(S.compras)}};
   const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,1)],{type:"application/json"}));
   const a=document.createElement("a");a.href=url;a.download=`nosso-mes-backup-${ymd(new Date())}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);};
 $("bkRestaurar").onclick=()=>{if(!db){toast("Entre com a sua conta para restaurar.");return;}$("bkArquivo").value="";$("bkArquivo").click();};
@@ -2589,7 +2992,7 @@ $("bkArquivo").addEventListener("change",async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   let b;try{b=JSON.parse(await f.text());}catch(x){toast("Esse arquivo não é um backup válido.");return;}
   if(!b||b.app!=="nosso-mes"||!b.dados){toast("Esse arquivo não é um backup do Nosso mês.");return;}
-  const COLS=["config","cartao","contas","meses","gastos","invest","invmov","desejos"];const ops=[];
+  const COLS=["config","cartao","contas","meses","gastos","invest","invmov","desejos","compras"];const ops=[];
   const cada=(obj,fn)=>Object.entries(obj||{}).forEach(([col,v])=>{if(COLS.includes(col))fn(col,v);});
   cada(b.dados,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>{const x={...d};delete x.id;ops.push({t:"set",col,id,data:x});}));
   cada(b.mesclar,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>ops.push({t:"merge",col,id,data:d})));
@@ -2617,10 +3020,11 @@ function conectar(){
   sub("meses",a=>{S.meses={};a.forEach(m=>S.meses[m.id]=m);});
   sub("invest",a=>S.invest=a);
   sub("desejos",a=>S.desejos=a);
+  sub("compras",a=>S.compras=a);
   sub("invmov",a=>S.invmov=a.map(m=>({...m,valor:Number(m.valor)||0})));
   subs.push(db.doc("config/geral").onSnapshot(s=>{S.config=s.exists?{...s.data()}:{};S.loaded.add("config");render();},onErr));
 }
-function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],loaded:new Set(),readonly:false});}
+function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],loaded:new Set(),readonly:false});}
 const provider=new GoogleAuthProvider();
 $("btnLogin").onclick=async()=>{$("loginErro").textContent="";
   try{await signInWithPopup(auth,provider);}
