@@ -556,7 +556,6 @@ input.cm-preco{flex-basis:66px;width:66px;font-size:.86rem;padding:7px 6px}
 .cm-loja-add{border-style:dashed !important;color:var(--petrol) !important;background:transparent !important;font-weight:700}
 /* fatura mês a mês */
 .weeknav button:disabled{opacity:.35}
-#fatLabel{line-height:1.25}
 .fat-topo{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:12px 0 8px}
 .fat-total{font-size:1.7rem;line-height:1.1;font-weight:700}
 .fat-chip{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:700;background:var(--paper);color:var(--muted)}
@@ -564,6 +563,41 @@ input.cm-preco{flex-basis:66px;width:66px;font-size:.86rem;padding:7px 6px}
 .fat-paga{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
 .fat-paga.ok{background:var(--petrol);border-color:var(--petrol);color:#fff}
 table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
+/* fatura no topo (acompanha o mês escolhido) */
+.fh-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;position:relative;z-index:1}
+.fh-seta{flex:0 0 38px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:1.35rem;line-height:1;cursor:pointer}
+.fh-seta:disabled{opacity:.3;cursor:default}
+.fh-mes{display:flex;flex-direction:column;align-items:center;line-height:1.2;text-align:center}
+.fh-mes span{font-size:.76rem;opacity:.85}
+.fh-mes b{font-size:1rem;font-weight:700}
+.fat-hero .big{text-align:center;position:relative;z-index:1}
+.fh-sub{text-align:center;margin:2px 0 0;opacity:.92;font-size:.86rem;position:relative;z-index:1}
+.fh-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;position:relative;z-index:1}
+.fh-esp{flex:1}
+.fh-chip{font-size:.76rem;font-weight:700;background:rgba(255,255,255,.2);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.fh-link{background:none;border:0;color:#fff;text-decoration:underline;font:inherit;font-size:.8rem;padding:2px 0;cursor:pointer}
+.fat-hero .fat-paga{background:#fff;color:var(--ink);border:0;padding:8px 13px}
+.fat-hero .fat-paga.ok{background:#fff;color:var(--petrol)}
+.fat-comp{margin-top:12px}
+.fat-comp>:first-child{margin-bottom:6px}
+.fc-row{border-top:1px solid var(--line)}
+.fc-linhas>.fc-row:first-child{border-top:0}
+.fc-row>summary,.fc-fixa{display:flex;align-items:center;gap:10px;padding:12px 2px;list-style:none;cursor:pointer}
+.fc-row>summary,.fc-fixa,.fc-row[open]>summary{color:var(--ink);font-weight:500}
+.fc-fixa{cursor:default}
+.fc-row>summary::-webkit-details-marker{display:none}
+.fc-row>summary::after{content:"›";color:var(--muted);font-size:1.1rem;transform:rotate(90deg);transition:transform .15s}
+.fc-row[open]>summary::after{transform:rotate(-90deg)}
+.fc-row i{flex:0 0 10px;width:10px;height:10px;border-radius:50%}
+.fc-row span{flex:1;min-width:0}
+.fc-row small{color:var(--muted);font-weight:500}
+.fc-row b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fc-lista{padding:0 2px 10px 20px}
+.fc-lista div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;font-size:.86rem;border-bottom:1px dashed var(--line)}
+.fc-lista div:last-child{border-bottom:0}
+.fc-lista b{font-weight:600}
+.fc-nota{margin:10px 0 0;font-size:.78rem;color:var(--muted);line-height:1.4}
+.fc-alerta{color:var(--warn);font-weight:600}
 </style>
 </head>
 <body class="deslogado">
@@ -654,14 +688,12 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
   <!-- CARTÃO -->
   <section id="tab-cartao" hidden>
     <div id="cartHero"></div>
-  <div class="sec-head"><h2>Fatura do mês</h2></div>
-  <div class="weeknav" id="fatNav"><button type="button" id="fatPrev" aria-label="Fatura do mês anterior">‹</button><div class="lbl" id="fatLabel"></div><button type="button" id="fatNext" aria-label="Fatura do mês seguinte">›</button></div>
   <div id="fatCorpo"></div>
     <div id="cartFolga"></div>
     <h2>Fatura prevista, mês a mês</h2>
     <div class="chart" id="cartChart"></div>
     <div class="legend"><span><i class="sw-folga"></i>Cabe até a meta (+)</span><span><i style="background:var(--sim)"></i>Compra simulada</span><span><i style="background:var(--petrol)"></i>Parcelas dentro da meta</span><span><i style="background:var(--warn)"></i>Parcelas acima da meta</span><span><i style="background:var(--k10)"></i>Mercado (lista de compras)</span><span><i style="background:var(--k7)"></i>Gastos diversos no cartão</span><span><i style="background:var(--amber)"></i>Assinaturas e contas fixas no cartão</span><span><i style="background:none;border-top:2px dashed var(--ink);border-radius:0;height:0;width:16px"></i>Meta das parcelas</span></div>
-    <p class="small muted" style="margin-top:6px">Cada barra é a fatura prevista do mês, de baixo para cima: assinaturas e contas fixas (âmbar), gastos diversos pagos no cartão (cinza), o mercado (azul; antes da compra, o valor reservado; ² = duas compras de mercado na mesma fatura), parcelas (verde se dentro da meta, vermelho se acima) e, tracejado, quanto ainda cabe em parcelas até a linha da meta. Embaixo do mês, os valores seguem a mesma ordem: quanto cabe (+), parcelas, mercado, cinza e âmbar. Uma parcela cabe na meta se couber no tracejado de todos os meses do prazo. O número em cima é o total da fatura, sem os gastos semanais.</p>
+    <p class="small muted" style="margin-top:6px">Cada barra é a fatura prevista do mês, de baixo para cima: assinaturas e contas fixas (âmbar), gastos diversos pagos no cartão (cinza), o mercado (azul; antes da compra, o valor reservado; ² = duas compras de mercado na mesma fatura), parcelas (verde se dentro da meta, vermelho se acima) e, tracejado, quanto ainda cabe em parcelas até a linha da meta. Embaixo do mês, os valores seguem a mesma ordem: quanto cabe (+), parcelas, mercado, cinza e âmbar. Uma parcela cabe na meta se couber no tracejado de todos os meses do prazo. O número em cima é o total da fatura, sem os gastos semanais. Toque numa barra para ver a fatura daquele mês no topo.</p>
 
     <h2>Antes de parcelar, simule</h2>
     <div class="card">
@@ -1899,22 +1931,42 @@ const fatDm=v=>typeof v==="string"&&v.length>=10?`${v.slice(8,10)}/${v.slice(5,7
 async function togglePagaFatura(k,forcar){const atual=(S.meses[k]||{}).faturaPaga,novo=forcar!=null?forcar:!atual;
   await write(()=>aplicar([{t:"merge",col:"meses",id:k,data:{faturaPaga:novo?ymd(new Date()):null}}]),novo?`Fatura de ${mesNome(k)} marcada como paga.`:`Fatura de ${mesNome(k)} desmarcada.`);}
 function renderFaturaMes(){
-  const cur=monthKey(today);if(!ui.fat)ui.fat=cur;const k=ui.fat,min=addMonths(cur,-18),max=addMonths(cur,24);
-  $("fatLabel").innerHTML=k===cur?`${mesNome(k)}<br><small class="muted">mês atual</small>`:`${mesNome(k)}<br><button type="button" class="linkbtn" id="fatHoje">voltar para o mês atual</button>`;
-  $("fatPrev").disabled=k<=min;$("fatNext").disabled=k>=max;
-  const R=Core.relatorio(S,k,new Date()),F=R.fatura,ant=addMonths(k,-1),A=Core.relatorio(S,ant,new Date()).fatura,paga=(S.meses[k]||{}).faturaPaga;
-  if(!(F.total>0)){$("fatCorpo").innerHTML=`<div class="card"><p class="muted" style="margin:0">Sem fatura prevista em ${mesNome(k)}.</p></div>`;return;}
-  const dif=r2(F.total-A.total),chip=A.total>0&&ativo(ant)?`<span class="fat-chip ${dif>0?"sobe":dif<0?"desce":""}">${dif===0?`igual a ${mesCurto(ant)}`:`${dif>0?"+":"−"}${brl0(Math.abs(dif))} em relação a ${mesCurto(ant)}`}</span>`:"";
-  $("fatCorpo").innerHTML=`<div class="fat-topo"><div><span class="muted small">Total previsto da fatura</span><div class="fat-total num">${brl(F.total)}</div>${chip}</div>
-    <button type="button" class="fat-paga${paga?" ok":""}" data-fatpaga="${k}" aria-pressed="${!!paga}">${paga?`✓ Paga${fatDm(paga)?" em "+fatDm(paga):""}`:"Marcar como paga"}</button></div>
-    ${F.gastos>0?`<p class="small muted" style="margin:0 0 8px">Inclui ${brl0(F.gastos)} de gastos da semana pagos no cartão. O quadro do topo e o gráfico mais abaixo mostram só a parte fixa (parcelas, assinaturas, contas e mercado).</p>`:""}
-    ${faturaHtml(F,R.diaFechamento)}`;
-  $("fatCorpo").querySelectorAll("details.rel-det").forEach(d=>{const sm=d.querySelector("summary"),key=sm?sm.textContent.replace(/\s*\(.*$/,"").trim():"";d.dataset.k=key;if(fatAb.has(key))d.open=true;});
+  const cur=monthKey(today);if(!ui.fat)ui.fat=cur;const k=ui.fat,min=addMonths(cur,-18),max=addMonths(cur,24),M=metasDe();
+  const R=Core.relatorio(S,k,new Date()),F=R.fatura,ant=addMonths(k,-1),paga=(S.meses[k]||{}).faturaPaga;
+  const A=ativo(ant)?Core.relatorio(S,ant,new Date()).fatura:null;   /* só compara com mês que está no planejamento */
+  const pm=parcelasMes(k),sal=salario(k)||salarioRef(k),pct=sal?Math.round(pm/sal*100):null,acima=pct!=null&&pct>M.cartao;
+  const dif=A&&A.total>0?r2(F.total-A.total):null;
+  const chip=dif==null?"":`<span class="fh-chip">${dif===0?`igual a ${mesCurto(ant)}`:`${dif>0?"▲":"▼"} ${brl0(Math.abs(dif))} vs ${mesCurto(ant)}`}</span>`;
+  $("cartHero").innerHTML=`<div class="note fat-hero${acima?" neg":""}">${guilloche}
+    <div class="fh-nav"><button type="button" class="fh-seta" data-fatnav="-1" aria-label="Fatura do mês anterior" ${k<=min?"disabled":""}>‹</button>
+      <div class="fh-mes"><span>Fatura prevista</span><b>${mesNome(k)}</b></div>
+      <button type="button" class="fh-seta" data-fatnav="1" aria-label="Fatura do mês seguinte" ${k>=max?"disabled":""}>›</button></div>
+    <div class="big num">${brl(F.total)}</div>
+    <p class="fh-sub">${pm>0?`Parcelas: ${brl0(pm)}${pct!=null?` · ${pct}% do salário (meta ${M.cartao}%)`:""}`:"Sem parcelas neste mês"}</p>
+    <div class="fh-acoes">${chip}${k!==cur?`<button type="button" class="fh-link" data-fathoje>voltar para ${MESES[today.getMonth()]}</button>`:""}<span class="fh-esp"></span><button type="button" class="fat-paga${paga?" ok":""}" data-fatpaga="${k}" aria-pressed="${!!paga}">${paga?`✓ Paga${fatDm(paga)?" em "+fatDm(paga):""}`:"Marcar como paga"}</button></div></div>`;
+  if(!(F.total>0)){$("fatCorpo").innerHTML=`<div class="card fat-comp"><p class="muted" style="margin:0">Nada previsto para a fatura de ${mesNome(k)}.</p></div>`;return;}
+  const linhas=[
+    {k:"parc",cor:"var(--petrol)",t:"Parcelas e assinaturas",n:F.itens.length,v:F.parcelas,lista:F.itens.map(x=>[esc(x.nome)+(x.info?(x.info.estado==="ativa"?` <small>${x.info.i}/${x.info.n}</small>`:""):` <small>mensal</small>`),x.valor])},
+    {k:"fixa",cor:"var(--amber)",t:"Contas fixas no cartão",n:F.fixasLista.length,v:F.fixas,lista:F.fixasLista.map(x=>[esc(x.nome),x.valor])},
+    {k:"div",cor:"var(--k7)",t:"Gastos diversos no cartão",n:F.divLista.length,v:F.div,lista:F.divLista.map(x=>[esc(x.nome),x.valor])},
+    {k:"merc",cor:"var(--k10)",t:"Mercado",n:0,v:F.mercado,lista:F.mercadoPartes.map(p=>[`Compra de ${mesNome(p.mes)}${p.tipo==="previsto"?" <small>ainda a comprar (previsto)</small>":""}`,p.valor])},
+    {k:"sem",cor:"var(--pix)",t:"Gastos da semana no cartão",n:0,v:F.gastos,lista:null}
+  ].filter(l=>l.v>0.004);
+  const row=l=>{const resumo=`<i style="background:${l.cor}"></i><span>${l.t}${l.n?` <small>(${l.n})</small>`:""}</span><b>${brl(l.v)}</b>`;
+    return l.lista&&l.lista.length?`<details class="fc-row" data-k="${l.k}"${fatAb.has(l.k)?" open":""}><summary>${resumo}</summary><div class="fc-lista">${l.lista.map(([n,v])=>`<div><span>${n}</span><b>${brl(v)}</b></div>`).join("")}</div></details>`:`<div class="fc-row fc-fixa">${resumo}</div>`;};
+  $("fatCorpo").innerHTML=`<div class="card fat-comp">${stackBar(linhas.map(l=>({v:l.v,cor:l.cor,label:l.t})),"Composição da fatura")}<div class="fc-linhas">${linhas.map(row).join("")}</div>
+    ${F.gastos>0?`<p class="fc-nota">Os gastos da semana entram pelo mês em que foram lançados${F.aPagar>0?`; ${brl(F.aPagar)} ainda não foram pagos`:""}. O cartão fecha no dia ${R.diaFechamento}.</p>`:""}
+    ${F.mercadoDuas?`<p class="fc-nota fc-alerta">⚠ Duas compras de mercado nesta fatura (uma foi feita depois do fechamento). A fatura anterior veio mais leve: a diferença precisa estar guardada.</p>`:""}</div>`;
 }
 $("fatCorpo").addEventListener("toggle",e=>{const d=e.target;if(!d||d.tagName!=="DETAILS"||!d.dataset.k)return;if(d.open)fatAb.add(d.dataset.k);else fatAb.delete(d.dataset.k);},true);
-$("fatPrev").onclick=()=>{ui.fat=addMonths(ui.fat||monthKey(today),-1);renderFaturaMes();};
-$("fatNext").onclick=()=>{ui.fat=addMonths(ui.fat||monthKey(today),1);renderFaturaMes();};
-$("tab-cartao").addEventListener("click",e=>{if(e.target.closest("#fatHoje")){ui.fat=monthKey(today);renderFaturaMes();return;}const b=e.target.closest("[data-fatpaga]");if(b)togglePagaFatura(b.dataset.fatpaga);});
+function irFatura(k){ui.fat=k;renderCartao();}
+$("tab-cartao").addEventListener("click",e=>{
+  const nv=e.target.closest("[data-fatnav]");if(nv){if(!nv.disabled)irFatura(addMonths(ui.fat||monthKey(today),Number(nv.dataset.fatnav)));return;}
+  if(e.target.closest("[data-fathoje]")){irFatura(monthKey(today));return;}
+  const b=e.target.closest("[data-fatpaga]");if(b){togglePagaFatura(b.dataset.fatpaga);return;}
+  const svg=e.target.closest("#cartChart svg");if(svg){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;if(!r.width||!vb||!vb.width)return;
+    const X=(e.clientX-r.left)*vb.width/r.width,i=Math.floor((X-22)/44);if(i<0||i>14)return;
+    irFatura(addMonths(monthKey(today),i));$("cartHero").scrollIntoView({behavior:"smooth",block:"start"});}});
 function renderCartao(){renderFolga();renderFaturaMes();
   const cur=monthKey(today);const months=Array.from({length:15},(_,i)=>addMonths(cur,i));const M=metasDe();
   const sim=simItem();
@@ -1922,8 +1974,7 @@ function renderCartao(){renderFolga();renderFaturaMes();
   const simv=months.map(k=>sim&&!isAss?itemNoMes(sim,k):0),simA=months.map(k=>sim&&isAss?itemNoMes(sim,k):0);
   const metas=months.map(k=>{const s=salarioRef(k);return s?s*M.cartao/100:null;});
   const c0=vals[0]+fxv[0]+dvv[0]+mkv[0],s0=salario(cur)||salarioRef(cur);const p0=s0?Math.round(vals[0]/s0*100):null;
-  $("cartHero").innerHTML=`<div class="note${p0!=null&&p0>M.cartao?" neg":""}">${guilloche}<p>Fatura prevista de ${MESES[today.getMonth()]}</p>
-    <div class="big num">${brl0(c0)}</div><p>${brl0(vals[0])} em parcelas${p0!=null?` (${p0}% do salário, meta de ${M.cartao}%)`:""} + ${brl0(fxv[0])} em assinaturas e contas fixas (contam em Despesas fixas)${dvv[0]>0?` + ${brl0(dvv[0])} em gastos diversos no cartão (contam em Gastos diversos)`:""}${mkv[0]>0?` + ${brl0(mkv[0])} do mercado${mkF[0].partes.some(p=>p.tipo==="previsto")?" (parte prevista)":""}`:""}.${p0==null?" Cadastre o salário do mês para ver a porcentagem.":""}</p></div>`;
+  /* o quadro do topo é desenhado por renderFaturaMes (acompanha o mês escolhido) */
   /* barra do mês, de baixo para cima: assinaturas e contas fixas (âmbar) → parcelas (verde/vermelho) → quanto ainda cabe até a meta (tracejado).
      A linha da meta de cada mês fica em (âmbar + meta), porque a meta vale só para as parcelas. */
   const temSim=simv.some(v=>v>0)||simA.some(v=>v>0),temDv=dvv.some(v=>v>0),temMk=mkv.some(v=>v>0),nl=3+(temSim?1:0)+(temDv?1:0)+(temMk?1:0);
@@ -1955,7 +2006,8 @@ function renderCartao(){renderFolga();renderFaturaMes();
     if(temMk)g+=lin(n++,mk>0?kfmt(mk)+(mkF[i].duas?"²":""):"–","var(--k10)");
     if(temDv)g+=lin(n++,dv>0?kfmt(dv):"–","var(--k7)");
     g+=lin(n++,fx>0?kfmt(fx):"–","var(--amber)");});
-  $("cartChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fatura prevista do cartão nos próximos 15 meses">${g}</svg>`;
+  {const hi=months.indexOf(ui.fat||cur);if(hi>=0)g=`<rect class="fat-sel" x="${30+hi*44-7}" y="4" width="42" height="${H-8}" rx="8" fill="var(--petrol-soft)" opacity=".6"/>`+g;}
+  $("cartChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fatura prevista do cartão nos próximos 15 meses (toque numa barra para ver a fatura do mês)">${g}</svg>`;
   if(sim){
     const piores=months.map((k,i)=>({k,tot:vals[i]+simv[i],m:metas[i],sv:simv[i]})).filter(x=>x.sv>0);
     const acima=piores.filter(x=>x.m!=null&&x.tot>x.m);
