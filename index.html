@@ -598,6 +598,27 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
 .fc-lista b{font-weight:600}
 .fc-nota{margin:10px 0 0;font-size:.78rem;color:var(--muted);line-height:1.4}
 .fc-alerta{color:var(--warn);font-weight:600}
+/* contas gastas aos poucos */
+.env-conta{margin-top:12px}
+.ec-top{display:flex;align-items:center;gap:10px}
+.ec-ico{font-size:1.5rem;line-height:1}
+.ec-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.ec-t small{color:var(--muted);font-size:.76rem}
+.ec-btn{flex:0 0 auto;padding:9px 14px;font-size:.88rem}
+.ec-val{margin:10px 0 6px;font-variant-numeric:tabular-nums}
+.ec-val .neg{color:var(--warn)}
+.ec-bar{position:relative;height:10px;border-radius:5px;background:var(--line)}
+.ec-bar i{display:block;height:100%;border-radius:5px;background:var(--petrol)}
+.ec-bar.over i{background:var(--warn)}
+.ec-bar em{position:absolute;top:-4px;width:2px;height:18px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.ec-nota{margin:8px 0 0;font-size:.8rem;color:var(--muted);line-height:1.4}
+.ec-hist{margin-top:8px}
+.ec-hist summary{font-size:.82rem;color:var(--petrol);font-weight:600;cursor:pointer}
+.ec-hist div{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.86rem}
+.ec-hist div span{flex:1}
+.ec-hist div:last-child{border-bottom:0}
+.pl-env{display:block;font-size:.72rem;color:var(--muted);font-weight:500}
+@media (max-width:370px){.ec-top{flex-wrap:wrap}.ec-btn{flex:1 1 100%;order:3;margin-top:4px}}
 </style>
 </head>
 <body class="deslogado">
@@ -626,6 +647,7 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
     </div>
     <div id="semHero"></div>
     <div class="weeks" id="semWeeks" aria-label="Semanas do mês"></div>
+    <div id="semEnv"></div>
     <div class="sec-head"><h2 id="semListaTitulo">Gastos da semana</h2><span id="semTotal"></span></div>
     <div class="card"><ul class="list" id="semLista"></ul></div>
     <p class="small muted" id="semFatura" style="margin-top:10px"></p>
@@ -823,6 +845,7 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
     <div class="full"><label>Grupo</label><div class="chips" id="scTipo"></div></div>
     <div class="full"><label class="check big"><input type="checkbox" id="scCartao"> <span>💳 É pago no cartão <small class="muted">(entra na fatura prevista)</small></span></label>
       <label class="check" id="scTodosBox" style="margin-top:8px"><input type="checkbox" id="scTodos" checked> Valer para todos os meses desta conta</label></div>
+    <div class="full"><label class="check big"><input type="checkbox" id="scEnvelope"> <span>⛽ Vai sendo gasta aos poucos <small class="muted">(ex.: combustível; cada lançamento sai desta conta, não do dinheiro da semana)</small></span></label></div>
     <div class="full" id="scPagaBox"><label class="check big"><input type="checkbox" id="scPaga"> <span>Já foi paga</span></label></div>
     <div class="full" id="scRepetirBox"><label for="scRepetir">Repetir nos meses seguintes</label><select id="scRepetir"></select></div>
     <div class="full"><button class="btn" id="scSalvar" style="width:100%">Salvar</button></div>
@@ -979,6 +1002,18 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
     <div class="full"><label for="lcNovo">Novo local</label><div class="cm-add" style="margin:0"><input id="lcNovo" type="text" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="Ex.: Assaí, feira, farmácia"><button type="button" class="btn" id="lcAdd" aria-label="Adicionar local">+</button></div></div>
     <div class="full"><div class="card" style="padding:2px 12px"><ul class="list" id="lcLista"></ul></div></div>
     <div class="full"><p class="small muted" style="margin:0">Remover um local tira ele dos botões e das comparações de preço. As compras antigas continuam com o nome do lugar onde foram feitas.</p></div>
+  </div>
+</div></dialog>
+
+<dialog class="sheet" id="sheetUso" aria-labelledby="usTitulo"><div class="sheet-in">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head"><h2 id="usTitulo">Abastecer</h2><button class="x" data-fechar="sheetUso" aria-label="Fechar">✕</button></div>
+  <div class="grid">
+    <div class="full"><label for="usValor" class="sr">Valor</label><div class="valor-grande"><span>R$</span><input id="usValor" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></div>
+    <div class="m2"><label for="usData">Dia</label><input id="usData" type="date"></div>
+    <div class="m2"><label>Quem</label><div class="chips" id="usQuem"></div></div>
+    <div class="full"><p class="small muted" id="usInfo" style="margin:0"></p></div>
+    <div class="full"><button class="btn" id="usSalvar" style="width:100%">Lançar</button></div>
   </div>
 </div></dialog>
 
@@ -1558,7 +1593,7 @@ const newId=p=>`${p}-${Date.now().toString(36)}${Math.random().toString(36).slic
 
 /* ---------- estado ---------- */
 const today=new Date();
-const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],loaded:new Set(),readonly:false};
+const S={config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],usos:[],loaded:new Set(),readonly:false};
 const ui={tab:"semana",week:mondayOf(today),mes:monthKey(today),ano:String(today.getFullYear()),pm:monthKey(today),pv:"mes",cf:"todas",df:"todos",libBase:null,cm:(()=>{try{return localStorage.getItem("nm-contas-modo")||"lista";}catch(e){return "lista";}})(),
   quem:store.get("nm-quem"),forma:store.get("nm-forma")==="pix"?"pix":"cartao",parc:false,sTipo:"parcela"};
 let db=null;let nomeUsuario="";
@@ -1638,7 +1673,52 @@ function renderVezes(){
           t+=q?` Se a 1ª parcela cair em ${mesCurto(q.inicio)} ou depois, cabe até ${brl0(q.parcelaMax)} por parcela${ex?` (e até ${brl0(ex.parcelaMax)} a partir de ${mesCurto(ex.inicio)})`:""}.`:" Não há folga nos próximos meses.";}}
       ver.className="vered "+cls;ver.textContent=t;ver.hidden=false;}}
 }
-function renderSemana(){
+/* ---------- contas gastas aos poucos (ex.: combustível): os lançamentos ficam em "usos" e não mexem no dinheiro da semana ---------- */
+const envNomes=()=>Array.isArray(S.config.envelopes)?S.config.envelopes:[];
+const ehEnvelope=c=>!!c&&envNomes().some(n=>slug(n)===slug(c.nome));
+const icoEnv=n=>{const x=slug(n);return /combust|gasolin|posto|alcool|etanol/.test(x)?"⛽":/farmac|remed/.test(x)?"💊":/gas/.test(x)?"🔥":/feira/.test(x)?"🥕":"🧾";};
+const usosDe=(nome,k)=>S.usos.filter(u=>slug(u.conta||"")===slug(nome)&&String(u.data||"").slice(0,7)===k);
+const usadoConta=c=>r2(sum(usosDe(c.nome,c.mes).map(u=>Number(u.valor)||0)));
+let usSel=null,usQuem=null;
+function renderEnvelopes(){
+  const box=$("semEnv");const k=saldoAte(ui.week).k;const lst=contasMes(k).filter(ehEnvelope);
+  if(!lst.length){box.innerHTML="";return;}
+  const hoje=new Date(today.getFullYear(),today.getMonth(),today.getDate()),hk=monthKey(today),[ay,am]=k.split("-").map(Number),diasMes=new Date(ay,am,0).getDate();
+  box.innerHTML=lst.map(c=>{const us=usosDe(c.nome,k).sort((a,b)=>String(b.data).localeCompare(String(a.data))||(b.criado||0)-(a.criado||0));
+    const val=Number(c.valor)||0,usado=r2(sum(us.map(u=>Number(u.valor)||0))),resta=r2(val-usado),pc=val>0?Math.min(1,usado/val):0,ico=icoEnv(c.nome),comb=ico==="⛽";
+    let ritmo=null,nota;
+    if(k===hk){const dia=hoje.getDate(),esp=val*dia/diasMes,semRest=Math.max(1,Math.ceil((diasMes-dia+1)/7));ritmo=dia/diasMes;
+      nota=resta<0?`Passou ${brl0(-resta)} do valor da conta: a diferença sai do que sobra no mês. Se acontecer sempre, aumente o valor da conta.`
+        :usado>esp*1.15&&usado>0?`Ritmo acima do normal: até hoje o esperado era uns ${brl0(esp)}. Dá ${brl0(resta/semRest)} por semana até o fim do mês.`
+        :`Dá ${brl0(resta/semRest)} por semana até o fim do mês.`;}
+    else if(k<hk)nota=resta<0?`Mês encerrado: passou ${brl0(-resta)}.`:`Mês encerrado: sobraram ${brl0(resta)}.`;
+    else nota="Este mês ainda não começou.";
+    return `<div class="card env-conta"><div class="ec-top"><span class="ec-ico" aria-hidden="true">${ico}</span><div class="ec-t"><b>${esc(c.nome)}</b><small>${mesNome(k)}</small></div>
+      <button type="button" class="btn ec-btn" data-envlanc="${esc(c.id)}">${comb?"⛽ Abastecer":"+ Lançar"}</button></div>
+      <div class="ec-val"><b>${brl0(usado)}</b> de ${brl0(val)} · ${resta>=0?`sobram <b>${brl0(resta)}</b>`:`<b class="neg">passou ${brl0(-resta)}</b>`}</div>
+      <div class="ec-bar${resta<0?" over":""}" role="progressbar" aria-label="Usado de ${esc(c.nome)}" aria-valuenow="${Math.round(pc*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.round(pc*100)}%"></i>${ritmo!=null?`<em style="left:${Math.round(ritmo*100)}%" title="esperado até hoje"></em>`:""}</div>
+      <p class="ec-nota">${nota}</p>
+      ${us.length?`<details class="ec-hist"><summary>${plural(us.length,"lançamento","lançamentos")} em ${mesCurto(k)}</summary>${us.map(u=>`<div><span>${dm(u.data)}${u.quem?` · ${esc(u.quem)}`:""}</span><b>${brl(Number(u.valor)||0)}</b><button type="button" class="linkbtn" data-envdel="${esc(u.id)}" aria-label="Apagar lançamento de ${brl(Number(u.valor)||0)}">apagar</button></div>`).join("")}</details>`:""}</div>`;}).join("");
+}
+function abrirUso(cid){const c=S.contas.find(x=>x.id===cid);if(!c)return;usSel=c.nome;const comb=icoEnv(c.nome)==="⛽";
+  $("usTitulo").textContent=comb?"Abastecer":`Lançar em ${c.nome}`;$("usValor").value="";
+  const hk=monthKey(today);$("usData").value=c.mes===hk?ymd(today):`${c.mes}-01`;
+  usQuem=ui.quem||pessoas()[0];renderUsQuem();atualizaUsInfo();abrir("sheetUso");setTimeout(()=>$("usValor").focus(),80);}
+const renderUsQuem=()=>{$("usQuem").innerHTML=pessoas().map(q=>`<button type="button" data-v="${esc(q)}" aria-pressed="${q===usQuem}">${esc(q)}</button>`).join("");};
+function atualizaUsInfo(){const d=$("usData").value,k=d?d.slice(0,7):null,c=k?contasMes(k).find(x=>slug(x.nome)===slug(usSel||"")):null;
+  $("usInfo").textContent=!d?"Escolha o dia.":c?`Sai da conta ${c.nome} de ${mesNome(k)} (sobram ${brl0(r2(Number(c.valor)-usadoConta(c)))} antes deste lançamento). Não mexe no dinheiro da semana.`:`Não há conta ${usSel} em ${mesNome(k)}.`;}
+$("usQuem").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;usQuem=b.dataset.v;renderUsQuem();});
+$("usData").addEventListener("change",atualizaUsInfo);
+$("usSalvar").onclick=async()=>{const v=money($("usValor").value),d=$("usData").value;
+  if(!(v>0)){toast("Digite o valor.");$("usValor").focus();return;}if(!d){toast("Escolha o dia.");return;}
+  const k=d.slice(0,7),c=contasMes(k).find(x=>slug(x.nome)===slug(usSel||""));if(!c){toast(`Não há conta ${usSel} em ${mesNome(k)}.`);return;}
+  const id=`u-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`,resta=r2(Number(c.valor)-usadoConta(c)-v);
+  const ok=await write(()=>aplicar([{t:"set",col:"usos",id,data:{conta:c.nome,data:d,valor:r2(v),quem:usQuem||"",criado:Date.now()}}]),`${c.nome}: ${brl(r2(v))} lançados. ${resta>=0?`Sobram ${brl0(resta)}.`:`Passou ${brl0(-resta)}.`}`);
+  if(ok)fechar("sheetUso");};
+$("semEnv").addEventListener("click",async e=>{const l=e.target.closest("[data-envlanc]");if(l){abrirUso(l.dataset.envlanc);return;}
+  const d=e.target.closest("[data-envdel]");if(d){const u=S.usos.find(x=>x.id===d.dataset.envdel);if(!u||!confirm(`Apagar o lançamento de ${brl(Number(u.valor)||0)} (${dm(u.data)})?`))return;
+    await write(()=>aplicar([{t:"del",col:"usos",id:u.id}]),"Lançamento apagado.");}});
+function renderSemana(){renderEnvelopes();
   const mon=ui.week;$("wLabel").textContent=rangeLabel(mon);
   const r=saldoAte(mon);const st=inicio();
   let hero;const mesTxt=MESES[Number(r.k.slice(5))-1];
@@ -2055,7 +2135,7 @@ function renderContas(){
   const nPagar=cs.filter(c=>!c.paga).length;
   $("contasFiltro").innerHTML=[["todas",`Todas (${cs.length})`],["pagar",`A pagar (${nPagar})`],["pagas",`Pagas (${cs.length-nPagar})`]].map(([v,t])=>`<button type="button" data-f="${v}" aria-pressed="${ui.cf===v}">${t}</button>`).join("");
   const passa=c=>ui.cf==="todas"||(ui.cf==="pagar"?!c.paga:!!c.paga);
-  const linha=c=>`<li class="tap conta ${c.paga?"paga":""}" data-c="${esc(c.id)}">${chkBtn("data-cpaga",c.id,c.paga,`Marcar ${c.nome} como paga`)}<div class="li-main"><div class="t">${esc(c.nome)}${c.noCartao?`<span class="pill card">💳 cartão</span>`:""}</div></div><span class="amt">${brl(c.valor)}</span></li>`;
+  const linha=c=>`<li class="tap conta ${c.paga?"paga":""}" data-c="${esc(c.id)}">${chkBtn("data-cpaga",c.id,c.paga,`Marcar ${c.nome} como paga`)}<div class="li-main"><div class="t">${esc(c.nome)}${c.noCartao?`<span class="pill card">💳 cartão</span>`:""}</div>${ehEnvelope(c)?`<div class="s">${icoEnv(c.nome)} usado ${brl0(usadoConta(c))} de ${brl0(c.valor)}</div>`:""}</div><span class="amt">${brl(c.valor)}</span></li>`;
   const grupos=[["Despesas fixas",cs.filter(c=>tipoDe(c)==="fixa")],["Gastos diversos",cs.filter(c=>tipoDe(c)==="diversos")],["Investimento",cs.filter(c=>tipoDe(c)==="investimento")]];
   let h="";
   grupos.forEach(([t,arr])=>{const v=arr.filter(passa);if(!v.length)return;
@@ -2087,7 +2167,7 @@ function renderPlanilhaContas(k){
   const box=$("contasPlanilha"),ae=document.activeElement;
   const foco=ae&&ae.classList&&ae.classList.contains("plv")&&box.contains(ae)?{id:ae.dataset.c,val:ae.value,sel:ae.selectionStart}:null;
   const cs=contasMes(k),sal=salario(k);
-  const linha=c=>`<tr><td class="nm" data-c="${esc(c.id)}">${c.noCartao?'<span class="cardmark">💳</span>':''}${esc(c.nome)}</td><td class="num"><input class="plv" data-c="${esc(c.id)}" value="${fmtInput(c.valor)}" inputmode="decimal" autocomplete="off" enterkeyhint="next" aria-label="Valor de ${esc(c.nome)}"></td><td class="ck"><input type="checkbox" class="plp" data-c="${esc(c.id)}" ${c.paga?"checked":""} aria-label="${esc(c.nome)} paga"></td></tr>`;
+  const linha=c=>`<tr><td class="nm" data-c="${esc(c.id)}">${c.noCartao?'<span class="cardmark">💳</span>':''}${esc(c.nome)}${ehEnvelope(c)?`<small class="pl-env">${icoEnv(c.nome)} usado ${brl0(usadoConta(c))}</small>`:""}</td><td class="num"><input class="plv" data-c="${esc(c.id)}" value="${fmtInput(c.valor)}" inputmode="decimal" autocomplete="off" enterkeyhint="next" aria-label="Valor de ${esc(c.nome)}"></td><td class="ck"><input type="checkbox" class="plp" data-c="${esc(c.id)}" ${c.paga?"checked":""} aria-label="${esc(c.nome)} paga"></td></tr>`;
   let h=`<div class="card pl-card"><table class="pl"><thead><tr><th>${mesNome(k)}</th><th class="num">Valor</th><th class="ck">Paga</th></tr></thead><tbody>`;
   h+=`<tr class="sub"><td>Salário</td><td class="num"><button class="linkbtn" data-mes-ed="1">${sal?brl(sal):"informar"}</button></td><td></td></tr>`;
   [["Despesas fixas","fixa"],["Gastos diversos","diversos"],["Investimento","investimento"]].forEach(([nome,t])=>{const g=cs.filter(c=>tipoDe(c)===t);if(!g.length)return;
@@ -2991,7 +3071,7 @@ function abrirConta(o){
   $("scTitulo").textContent=o.modo==="nova"?"Nova conta":`${nome} · ${mesCurto(mes)}`;
   $("scNomeBox").hidden=o.modo!=="nova";$("scNome").value=nome;
   $("scValor").value=c?fmtInput(c.valor):"";renderScTipo();
-  $("scCartao").checked=c?!!c.noCartao:!!o.noCartao;
+  $("scCartao").checked=c?!!c.noCartao:!!o.noCartao;$("scEnvelope").checked=!!nome&&ehEnvelope({nome});
   $("scTodosBox").hidden=o.modo!=="editar";$("scTodos").checked=true;
   $("scPagaBox").hidden=o.modo==="nova";$("scPaga").checked=c?!!c.paga:false;
   const a=mes.slice(0,4);$("scRepetirBox").hidden=o.modo==="editar";
@@ -3005,6 +3085,7 @@ $("scSalvar").onclick=async()=>{
   if(!nome){toast("Digite o nome da conta.");$("scNome").focus();return;}
   if(!(v>0)){toast("Digite o valor.");$("scValor").focus();return;}
   const cart=$("scCartao").checked;const ops=[];
+  {const quer=$("scEnvelope").checked,tem=ehEnvelope({nome});if(quer!==tem){const l=envNomes().filter(n=>slug(n)!==slug(nome));if(quer)l.push(nome);ops.push({t:"merge",col:"config",id:"geral",data:{envelopes:l}});}}
   if(E.modo==="editar"){
     ops.push({t:"merge",col:"contas",id:E.id,data:{valor:r2(v),paga:$("scPaga").checked,tipo:E.tipo,noCartao:cart}});
     if($("scTodos").checked&&(cart!==E.cartaoOrig||E.tipo!==E.tipoOrig))
@@ -3180,7 +3261,7 @@ $("cSalvar").onclick=async()=>{
   const ok=await write(()=>db.doc("config/geral").set(cfg),"Ajustes salvos.");if(ok)fechar("sheetAjustes");};
 $("bkBaixar").onclick=()=>{
   const limpa=arr=>Object.fromEntries(arr.map(d=>{const x={...d};const id=x.id;delete x.id;return [id,x];}));
-  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov),desejos:limpa(S.desejos),compras:limpa(S.compras)}};
+  const backup={app:"nosso-mes",versao:3,exportadoEm:ymd(new Date()),dados:{config:{geral:{...S.config}},cartao:limpa(S.cartao),contas:limpa(S.contas),meses:limpa(Object.values(S.meses)),gastos:limpa(S.gastos),invest:limpa(S.invest),invmov:limpa(S.invmov),desejos:limpa(S.desejos),compras:limpa(S.compras),usos:limpa(S.usos)}};
   const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,1)],{type:"application/json"}));
   const a=document.createElement("a");a.href=url;a.download=`nosso-mes-backup-${ymd(new Date())}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);};
 $("bkRestaurar").onclick=()=>{if(!db){toast("Entre com a sua conta para restaurar.");return;}$("bkArquivo").value="";$("bkArquivo").click();};
@@ -3188,7 +3269,7 @@ $("bkArquivo").addEventListener("change",async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   let b;try{b=JSON.parse(await f.text());}catch(x){toast("Esse arquivo não é um backup válido.");return;}
   if(!b||b.app!=="nosso-mes"||!b.dados){toast("Esse arquivo não é um backup do Nosso mês.");return;}
-  const COLS=["config","cartao","contas","meses","gastos","invest","invmov","desejos","compras"];const ops=[];
+  const COLS=["config","cartao","contas","meses","gastos","invest","invmov","desejos","compras","usos"];const ops=[];
   const cada=(obj,fn)=>Object.entries(obj||{}).forEach(([col,v])=>{if(COLS.includes(col))fn(col,v);});
   cada(b.dados,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>{const x={...d};delete x.id;ops.push({t:"set",col,id,data:x});}));
   cada(b.mesclar,(col,o)=>Object.entries(o||{}).forEach(([id,d])=>ops.push({t:"merge",col,id,data:d})));
@@ -3217,10 +3298,11 @@ function conectar(){
   sub("invest",a=>S.invest=a);
   sub("desejos",a=>S.desejos=a);
   sub("compras",a=>S.compras=a);
+  sub("usos",a=>S.usos=a);
   sub("invmov",a=>S.invmov=a.map(m=>({...m,valor:Number(m.valor)||0})));
   subs.push(db.doc("config/geral").onSnapshot(s=>{S.config=s.exists?{...s.data()}:{};S.loaded.add("config");render();},onErr));
 }
-function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],loaded:new Set(),readonly:false});}
+function desconectar(){subs.forEach(u=>u());subs=[];db=null;Object.assign(S,{config:{},gastos:[],cartao:[],contas:[],meses:{},invest:[],invmov:[],desejos:[],compras:[],usos:[],loaded:new Set(),readonly:false});}
 const provider=new GoogleAuthProvider();
 $("btnLogin").onclick=async()=>{$("loginErro").textContent="";
   try{await signInWithPopup(auth,provider);}
