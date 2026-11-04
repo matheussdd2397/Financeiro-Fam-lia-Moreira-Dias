@@ -553,6 +553,17 @@ li.cm-item.ok{border-left-color:color-mix(in srgb,var(--cc) 45%,transparent)}
 input.cm-preco{flex-basis:66px;width:66px;font-size:.86rem;padding:7px 6px}
 .cm-desc{color:var(--petrol);font-weight:700}
 .cm-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.cm-loja-add{border-style:dashed !important;color:var(--petrol) !important;background:transparent !important;font-weight:700}
+/* fatura mês a mês */
+.weeknav button:disabled{opacity:.35}
+#fatLabel{line-height:1.25}
+.fat-topo{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:12px 0 8px}
+.fat-total{font-size:1.7rem;line-height:1.1;font-weight:700}
+.fat-chip{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:700;background:var(--paper);color:var(--muted)}
+.fat-chip.sobe{color:var(--warn)}.fat-chip.desce{color:var(--petrol)}
+.fat-paga{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.fat-paga.ok{background:var(--petrol);border-color:var(--petrol);color:#fff}
+table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
 </style>
 </head>
 <body class="deslogado">
@@ -643,6 +654,9 @@ input.cm-preco{flex-basis:66px;width:66px;font-size:.86rem;padding:7px 6px}
   <!-- CARTÃO -->
   <section id="tab-cartao" hidden>
     <div id="cartHero"></div>
+  <div class="sec-head"><h2>Fatura do mês</h2></div>
+  <div class="weeknav" id="fatNav"><button type="button" id="fatPrev" aria-label="Fatura do mês anterior">‹</button><div class="lbl" id="fatLabel"></div><button type="button" id="fatNext" aria-label="Fatura do mês seguinte">›</button></div>
+  <div id="fatCorpo"></div>
     <div id="cartFolga"></div>
     <h2>Fatura prevista, mês a mês</h2>
     <div class="chart" id="cartChart"></div>
@@ -923,6 +937,16 @@ input.cm-preco{flex-basis:66px;width:66px;font-size:.86rem;padding:7px 6px}
     <div class="full"><p class="small muted" id="ciInfo" style="margin:0"></p></div>
     <div class="full"><button class="btn" id="ciSalvar" style="width:100%">Salvar</button></div>
     <div class="full"><button class="btn ghost danger" id="ciApagar" style="width:100%">Tirar da lista</button></div>
+  </div>
+</div></dialog>
+
+<dialog class="sheet" id="sheetLocais" aria-labelledby="lcTitulo"><div class="sheet-in">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head"><h2 id="lcTitulo">Locais de compra</h2><button class="x" data-fechar="sheetLocais" aria-label="Fechar">✕</button></div>
+  <div class="grid">
+    <div class="full"><label for="lcNovo">Novo local</label><div class="cm-add" style="margin:0"><input id="lcNovo" type="text" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="Ex.: Assaí, feira, farmácia"><button type="button" class="btn" id="lcAdd" aria-label="Adicionar local">+</button></div></div>
+    <div class="full"><div class="card" style="padding:2px 12px"><ul class="list" id="lcLista"></ul></div></div>
+    <div class="full"><p class="small muted" style="margin:0">Remover um local tira ele dos botões e das comparações de preço. As compras antigas continuam com o nome do lugar onde foram feitas.</p></div>
   </div>
 </div></dialog>
 
@@ -1344,7 +1368,7 @@ function resumoCompras(D,k){
   const its=itensCompra(D,k),hist=historicoCompras(D),comp=its.filter(x=>x.comprado),pend=its.filter(x=>!x.comprado),lojas=mercadosDe(D);
   const total=r2(sum(comp.map(totalItem)));const porLocal={},porCat={};
   comp.forEach(x=>{const l=x.local||"Sem local",c=x.categoria||categoriaDe(x.nome);porLocal[l]=(porLocal[l]||0)+totalItem(x);porCat[c]=(porCat[c]||0)+totalItem(x);});
-  const prox=addMonths(k,1),estimar=x=>{const u=ultimoPreco(hist,prodKey(x.nome),prox);return u?u.preco*qtdItem(x):null;};
+  const prox=addMonths(k,1),estimar=x=>{if(Number(x.preco)>0)return totalItem(x);const u=ultimoPreco(hist,prodKey(x.nome),prox);return u?u.preco*qtdItem(x):null;};
   const estPend=r2(sum(pend.map(x=>estimar(x)||0))),pendSemPreco=pend.filter(x=>estimar(x)==null).length;
   /* mês anterior: os mesmos produtos, preço por unidade */
   const catDe=x=>x.categoria||categoriaDe(x.nome),fim=comprasFim(D);
@@ -1391,7 +1415,7 @@ function mercadoDoMes(D,M,hojeStr){
   const padrao=`${M}-${String(Math.min(f,20)).padStart(2,"0")}`,porFat={};let comprado=0;
   comp.forEach(x=>{const v=totalItem(x);comprado+=v;const F=primeiraParcela(D,x.data||padrao);porFat[F]=(porFat[F]||0)+v;});
   let falta=0,faltaF=null;
-  if(!fin){const hist=historicoCompras(D),est=sum(its.filter(x=>!x.comprado).map(x=>{const u=ultimoPreco(hist,prodKey(x.nome),addMonths(M,1));return u?u.preco*qtdItem(x):0;}));
+  if(!fin){const hist=historicoCompras(D),est=sum(its.filter(x=>!x.comprado).map(x=>{if(Number(x.preco)>0)return totalItem(x);const u=ultimoPreco(hist,prodKey(x.nome),addMonths(M,1));return u?u.preco*qtdItem(x):0;}));
     falta=Math.max(0,Math.max(reserv,comprado+est)-comprado);
     faltaF=M===hk?primeiraParcela(D,hojeStr):addMonths(M,1);}   /* hoje já passou do fechamento: o que falta comprar cai na fatura seguinte */
   return {M,reserv,comprado:r2(comprado),porFat:Object.fromEntries(Object.entries(porFat).map(([k,v])=>[k,r2(v)])),falta:r2(falta),faltaF,final:fin};}
@@ -1661,6 +1685,16 @@ const relSec=(t,corpo)=>`<div class="rel-sec"><h2>${t}</h2>${corpo}</div>`;
 const IC_PDF=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14h6M10 17.5h4"/></svg>`;
 const IC_MAIL=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 7 8.5 6.5L20.5 7"/></svg>`;
 
+/* a fatura de um mês aberta (barra, valores e listas): usada no Painel e na aba Cartão, para os dois mostrarem sempre o mesmo número */
+function faturaHtml(F,dia){return `<div class="rel-card">${stackBar([{v:F.parcelas,cor:"var(--petrol)",label:"Parcelas e assinaturas"},{v:F.fixas,cor:"var(--amber)",label:"Contas fixas no cartão"},{v:F.div,cor:"var(--k7)",label:"Gastos diversos no cartão"},{v:F.mercado,cor:"var(--k10)",label:"Mercado"},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados"}],"Composição da fatura")}
+    <div style="margin-top:10px">${legRows([{v:F.parcelas,cor:"var(--petrol)",label:`Parcelas e assinaturas (${F.itens.length})`},{v:F.fixas,cor:"var(--amber)",label:`Contas fixas no cartão (${F.fixasLista.length})`},...(F.divLista.length?[{v:F.div,cor:"var(--k7)",label:`Gastos diversos no cartão (${F.divLista.length})`}]:[]),...(F.mercado>0?[{v:F.mercado,cor:"var(--k10)",label:`Mercado${F.mercadoPartes.some(p=>p.tipo==="previsto")?" (com parte prevista)":""}`}]:[]),{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados no cartão"}])}</div>
+    <div class="semrow" style="margin-top:6px"><span><b>Total previsto</b></span><b>${brl(F.total)}</b></div>
+    <div class="semrow"><span>Gastos ainda não pagos na fatura</span><b class="${F.aPagar>0?"neg":""}">${brl(F.aPagar)}</b></div>
+    ${F.itens.length?`<details class="rel-det"><summary>Parcelas e assinaturas (${F.itens.length})</summary>${F.itens.map(x=>`<div class="semrow"><span>${esc(x.nome)} ${x.info?(x.info.estado==="ativa"?`<span class="falt ${x.info.restam===0?"ultima":x.info.restam<=2?"perto":""}">${x.info.i}/${x.info.n} · ${textoFalta(x.info)}</span>`:""):`<span class="falt ass">mensal</span>`}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
+    ${F.fixasLista.length?`<details class="rel-det"><summary>Contas fixas no cartão (${F.fixasLista.length})</summary>${F.fixasLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
+     ${F.mercado>0?`<details class="rel-det"><summary>Mercado (${brl(F.mercado)})</summary>${F.mercadoPartes.map(p=>`<div class="semrow"><span>Compra de ${mesNome(p.mes)}: ${p.tipo==="previsto"?"ainda a comprar (previsto)":"já comprado"}</span><b>${brl(p.valor)}</b></div>`).join("")}</details>${F.mercadoDuas?`<p class="small" style="color:var(--warn);margin:6px 0 0">⚠ Esta fatura tem duas compras de mercado (uma foi feita depois do fechamento). A fatura anterior veio mais leve: a diferença precisa estar guardada.</p>`:""}`:""}
+     ${F.divLista.length?`<details class="rel-det"><summary>Gastos diversos no cartão (${F.divLista.length})</summary>${F.divLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
+    <p class="rel-note">Contado por mês de calendário. O cartão fecha no dia ${dia}, então compras feitas depois dele caem na fatura do mês seguinte e os valores podem se deslocar um pouco entre um mês e outro.</p></div>`;}
 function htmlRelatorio(R){
   const o=R.orcamento,tot=R.gastos.total;const h=[];
   const futuro=parse(R.mes+"-01")>new Date(R.ate.slice(0,4),R.ate.slice(5,7)-1,R.ate.slice(8,10));
@@ -1700,15 +1734,7 @@ function htmlRelatorio(R){
       <p class="rel-note">Salário de ${brl0(sal)}. Em vermelho, o que está pior que a meta. As assinaturas e as contas fixas pagas no cartão contam em Despesas fixas, e os gastos diversos pagos no cartão contam em Gastos diversos; "Cartão" são só as parcelas.</p></div>`));}
   /* fatura */
   const F=R.fatura;
-  if(F.total>0)h.push(relSec("Fatura do cartão (prevista)",`<div class="rel-card">${stackBar([{v:F.parcelas,cor:"var(--petrol)",label:"Parcelas e assinaturas"},{v:F.fixas,cor:"var(--amber)",label:"Contas fixas no cartão"},{v:F.div,cor:"var(--k7)",label:"Gastos diversos no cartão"},{v:F.mercado,cor:"var(--k10)",label:"Mercado"},{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados"}],"Composição da fatura")}
-    <div style="margin-top:10px">${legRows([{v:F.parcelas,cor:"var(--petrol)",label:`Parcelas e assinaturas (${F.itens.length})`},{v:F.fixas,cor:"var(--amber)",label:`Contas fixas no cartão (${F.fixasLista.length})`},...(F.divLista.length?[{v:F.div,cor:"var(--k7)",label:`Gastos diversos no cartão (${F.divLista.length})`}]:[]),...(F.mercado>0?[{v:F.mercado,cor:"var(--k10)",label:`Mercado${F.mercadoPartes.some(p=>p.tipo==="previsto")?" (com parte prevista)":""}`}]:[]),{v:F.gastos,cor:"var(--pix)",label:"Gastos lançados no cartão"}])}</div>
-    <div class="semrow" style="margin-top:6px"><span><b>Total previsto</b></span><b>${brl(F.total)}</b></div>
-    <div class="semrow"><span>Gastos ainda não pagos na fatura</span><b class="${F.aPagar>0?"neg":""}">${brl(F.aPagar)}</b></div>
-    ${F.itens.length?`<details class="rel-det"><summary>Parcelas e assinaturas (${F.itens.length})</summary>${F.itens.map(x=>`<div class="semrow"><span>${esc(x.nome)} ${x.info?(x.info.estado==="ativa"?`<span class="falt ${x.info.restam===0?"ultima":x.info.restam<=2?"perto":""}">${x.info.i}/${x.info.n} · ${textoFalta(x.info)}</span>`:""):`<span class="falt ass">mensal</span>`}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
-    ${F.fixasLista.length?`<details class="rel-det"><summary>Contas fixas no cartão (${F.fixasLista.length})</summary>${F.fixasLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
-     ${F.mercado>0?`<details class="rel-det"><summary>Mercado (${brl(F.mercado)})</summary>${F.mercadoPartes.map(p=>`<div class="semrow"><span>Compra de ${mesNome(p.mes)}: ${p.tipo==="previsto"?"ainda a comprar (previsto)":"já comprado"}</span><b>${brl(p.valor)}</b></div>`).join("")}</details>${F.mercadoDuas?`<p class="small" style="color:var(--warn);margin:6px 0 0">⚠ Esta fatura tem duas compras de mercado (uma foi feita depois do fechamento). A fatura anterior veio mais leve: a diferença precisa estar guardada.</p>`:""}`:""}
-     ${F.divLista.length?`<details class="rel-det"><summary>Gastos diversos no cartão (${F.divLista.length})</summary>${F.divLista.map(x=>`<div class="semrow"><span>${esc(x.nome)}</span><b>${brl(x.valor)}</b></div>`).join("")}</details>`:""}
-    <p class="rel-note">Contado por mês de calendário. O cartão fecha no dia ${R.diaFechamento}, então compras feitas depois dele caem na fatura do mês seguinte e os valores podem se deslocar um pouco entre um mês e outro.</p></div>`));
+  if(F.total>0)h.push(relSec("Fatura do cartão (prevista)",faturaHtml(F,R.diaFechamento)));
   /* quem gastou e como pagou */
   if(tot>0){const pp=R.gastos.porPessoa;
     h.push(relSec("Quem gastou e como pagou",`<div class="rel-card">
@@ -1867,7 +1893,29 @@ function renderFolga(){
     <p class="small muted" style="margin:12px 0 0">Maior parcela que cabe, por número de vezes, sem passar da meta em nenhum mês:</p>${linhas}
     <p class="rel-note">Vale o pior mês de cada prazo, porque a parcela é igual todo mês. As parcelas que já existem estão descontadas; assinaturas não entram, porque contam em Despesas fixas. Meses sem salário cadastrado usam o salário típico. Para testar uma compra específica, use o simulador logo abaixo.</p></div>`;
 }
-function renderCartao(){renderFolga();
+/* ---------- fatura mês a mês (aba Cartão) ---------- */
+const fatAb=new Set();   /* listas abertas (Parcelas, Contas fixas, Mercado…): continuam abertas ao trocar de mês */
+const fatDm=v=>typeof v==="string"&&v.length>=10?`${v.slice(8,10)}/${v.slice(5,7)}`:"";
+async function togglePagaFatura(k,forcar){const atual=(S.meses[k]||{}).faturaPaga,novo=forcar!=null?forcar:!atual;
+  await write(()=>aplicar([{t:"merge",col:"meses",id:k,data:{faturaPaga:novo?ymd(new Date()):null}}]),novo?`Fatura de ${mesNome(k)} marcada como paga.`:`Fatura de ${mesNome(k)} desmarcada.`);}
+function renderFaturaMes(){
+  const cur=monthKey(today);if(!ui.fat)ui.fat=cur;const k=ui.fat,min=addMonths(cur,-18),max=addMonths(cur,24);
+  $("fatLabel").innerHTML=k===cur?`${mesNome(k)}<br><small class="muted">mês atual</small>`:`${mesNome(k)}<br><button type="button" class="linkbtn" id="fatHoje">voltar para o mês atual</button>`;
+  $("fatPrev").disabled=k<=min;$("fatNext").disabled=k>=max;
+  const R=Core.relatorio(S,k,new Date()),F=R.fatura,ant=addMonths(k,-1),A=Core.relatorio(S,ant,new Date()).fatura,paga=(S.meses[k]||{}).faturaPaga;
+  if(!(F.total>0)){$("fatCorpo").innerHTML=`<div class="card"><p class="muted" style="margin:0">Sem fatura prevista em ${mesNome(k)}.</p></div>`;return;}
+  const dif=r2(F.total-A.total),chip=A.total>0&&ativo(ant)?`<span class="fat-chip ${dif>0?"sobe":dif<0?"desce":""}">${dif===0?`igual a ${mesCurto(ant)}`:`${dif>0?"+":"−"}${brl0(Math.abs(dif))} em relação a ${mesCurto(ant)}`}</span>`:"";
+  $("fatCorpo").innerHTML=`<div class="fat-topo"><div><span class="muted small">Total previsto da fatura</span><div class="fat-total num">${brl(F.total)}</div>${chip}</div>
+    <button type="button" class="fat-paga${paga?" ok":""}" data-fatpaga="${k}" aria-pressed="${!!paga}">${paga?`✓ Paga${fatDm(paga)?" em "+fatDm(paga):""}`:"Marcar como paga"}</button></div>
+    ${F.gastos>0?`<p class="small muted" style="margin:0 0 8px">Inclui ${brl0(F.gastos)} de gastos da semana pagos no cartão. O quadro do topo e o gráfico mais abaixo mostram só a parte fixa (parcelas, assinaturas, contas e mercado).</p>`:""}
+    ${faturaHtml(F,R.diaFechamento)}`;
+  $("fatCorpo").querySelectorAll("details.rel-det").forEach(d=>{const sm=d.querySelector("summary"),key=sm?sm.textContent.replace(/\s*\(.*$/,"").trim():"";d.dataset.k=key;if(fatAb.has(key))d.open=true;});
+}
+$("fatCorpo").addEventListener("toggle",e=>{const d=e.target;if(!d||d.tagName!=="DETAILS"||!d.dataset.k)return;if(d.open)fatAb.add(d.dataset.k);else fatAb.delete(d.dataset.k);},true);
+$("fatPrev").onclick=()=>{ui.fat=addMonths(ui.fat||monthKey(today),-1);renderFaturaMes();};
+$("fatNext").onclick=()=>{ui.fat=addMonths(ui.fat||monthKey(today),1);renderFaturaMes();};
+$("tab-cartao").addEventListener("click",e=>{if(e.target.closest("#fatHoje")){ui.fat=monthKey(today);renderFaturaMes();return;}const b=e.target.closest("[data-fatpaga]");if(b)togglePagaFatura(b.dataset.fatpaga);});
+function renderCartao(){renderFolga();renderFaturaMes();
   const cur=monthKey(today);const months=Array.from({length:15},(_,i)=>addMonths(cur,i));const M=metasDe();
   const sim=simItem();
   const vals=months.map(k=>parcelasMes(k)),fxv=months.map(k=>Core.contasCartaoFixas(S,k)+assinaturasMes(k)),dvv=months.map(k=>Core.contasCartaoOutras(S,k)),hojeS=ymd(today),mkF=months.map(k=>Core.mercadoNaFatura(S,k,hojeS)),mkv=mkF.map(m=>m.total);const isAss=ui.sTipo==="assinatura";
@@ -1973,6 +2021,16 @@ function renderContas(){
   $("contasFiltro").hidden=pl;$("contasGrupos").hidden=pl;$("contasPlanilha").hidden=!pl;if(pl)renderPlanilhaContas(k);
 }
 /* aba Contas em modo planilha: valores editáveis direto na célula */
+/* resumo da fatura do mês na planilha (não entra na Sobra do mês: ela já conta cada conta e parcela uma vez só) */
+function faturaPlanilha(k){
+  const FT=Core.relatorio(S,k,new Date()).fatura;if(!(FT.total>0))return "";
+  const paga=(S.meses[k]||{}).faturaPaga,pd=fatDm(paga);
+  const lin=(t,v)=>v>0.004?`<tr class="ro"><td>${t}</td><td class="num">${brl(v)}</td><td></td></tr>`:"";
+  return `<tr class="grp"><td colspan="3">💳 Fatura do cartão em ${mesNome(k)}</td></tr>`
+    +lin("Parcelas e assinaturas",FT.parcelas)+lin("Contas pagas no cartão",r2(FT.fixas+FT.div))
+    +lin(`Mercado${FT.mercadoPartes.some(p=>p.tipo==="previsto")?" (com parte prevista)":""}`,FT.mercado)+lin("Gastos da semana no cartão",FT.gastos)
+    +`<tr class="sub"><td>Total da fatura${paga?` <small class="muted">· paga${pd?" em "+pd:""}</small>`:""}</td><td class="num">${brl(FT.total)}</td><td class="ck"><input type="checkbox" class="plfat" data-k="${k}" ${paga?"checked":""} aria-label="Fatura de ${mesNome(k)} paga"></td></tr>`;
+}
 function renderPlanilhaContas(k){
   const box=$("contasPlanilha"),ae=document.activeElement;
   const foco=ae&&ae.classList&&ae.classList.contains("plv")&&box.contains(ae)?{id:ae.dataset.c,val:ae.value,sel:ae.selectionStart}:null;
@@ -1985,8 +2043,9 @@ function renderPlanilhaContas(k){
   const itens=S.cartao.filter(it=>itemNoMes(it,k)>0).sort((a,b)=>itemNoMes(b,k)-itemNoMes(a,k));
   const ro=(titulo,arr)=>arr.length?`<tr class="grp"><td colspan="3">${titulo}</td></tr>${arr.map(it=>`<tr class="ro"><td class="nm" data-ci="${esc(it.id)}">${esc(it.nome)}</td><td class="num">${brl(itemNoMes(it,k))}</td><td></td></tr>`).join("")}<tr class="sub"><td>Total</td><td class="num">${brl(sum(arr.map(it=>itemNoMes(it,k))))}</td><td></td></tr>`:"";
   h+=ro("💳 Assinaturas no cartão",itens.filter(Core.ehAssinatura))+ro("💳 Parcelas no cartão",itens.filter(it=>!Core.ehAssinatura(it)));
+  h+=faturaPlanilha(k);
   const sb=sobra(k);h+=`<tr class="tot"><td>Sobra do mês</td><td class="num ${sb<0?"neg":""}">${brl(sb)}</td><td></td></tr></tbody></table></div>
-    <p class="sec-note">Toque num valor e digite: salva quando você sai do campo ou aperta Enter (e já pula para o próximo). Toque no nome para editar a conta inteira. Para ver todos os meses lado a lado, use a aba Ano.</p>`;
+    <p class="sec-note">Toque num valor e digite: salva quando você sai do campo ou aperta Enter (e já pula para o próximo). Toque no nome para editar a conta inteira. Para ver todos os meses lado a lado, use a aba Ano. O total da fatura do cartão é só um resumo (parcelas, assinaturas, contas com 💳, mercado e gastos da semana pagos no cartão): ele não é descontado de novo na Sobra do mês, e a caixinha dele marca que a fatura foi paga.</p>`;
   box.innerHTML=h;
   if(foco){const el=[...box.querySelectorAll(".plv")].find(x=>x.dataset.c===foco.id);if(el){el.value=foco.val;el.dataset.refoco="1";el.focus();try{el.setSelectionRange(foco.sel,foco.sel);}catch(e){}}}
 }
@@ -2548,9 +2607,9 @@ function htmlLista(R,lojas){
   let h=`<div class="cm-add"><input id="cmNovo" type="text" list="cmSug" placeholder="Adicionar item (ex.: Arroz 5kg)" autocomplete="off" enterkeyhint="done" aria-label="Novo item"><button type="button" class="btn" id="cmAdd" aria-label="Adicionar">+</button></div><datalist id="cmSug">${sug.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>`;
   if(faltamAnt.length)h+=`<div class="card" style="margin-bottom:12px">${its.length?`<p class="small" style="margin:0 0 8px">${plural(faltamAnt.length,"item","itens")} de ${mesNome(ant)} ainda não ${faltamAnt.length===1?"está":"estão"} nesta lista.</p><button class="btn ghost" data-copiar="1" style="width:100%">Trazer ${plural(faltamAnt.length,"item","itens")} de ${mesCurto(ant)}</button>`:
     `<p style="margin:0 0 8px">Comece pela lista de ${mesNome(ant)}: ${plural(faltamAnt.length,"item","itens")}, sem os preços (cada item mostra o preço anterior para comparar).</p><button class="btn" data-copiar="1" style="width:100%">Copiar a lista de ${mesCurto(ant)}</button>`}</div>`;
-  if(!its.length)return h+(faltamAnt.length?"":`<div class="card"><p style="margin:0 0 8px">Lista vazia. Escreva os itens acima (com o tamanho no nome, como "Arroz 5kg", para comparar embalagens).</p><p class="small muted" style="margin:0">No mercado: escolha onde estão, marque a bolinha e digite o preço. O Enter pula para o próximo item que falta. Com o campo vazio, o Enter usa o preço anterior.</p></div>`);
+  if(!its.length)return h+(faltamAnt.length?"":`<div class="card"><p style="margin:0 0 8px">Lista vazia. Escreva os itens acima (com o tamanho no nome, como "Arroz 5kg", para comparar embalagens).</p><p class="small muted" style="margin:0">No mercado: escolha onde estão e digite o preço (o Enter pula para o próximo; com o campo vazio, repete o preço anterior). Quando o item estiver no carrinho, toque na bolinha: só aí ele conta como comprado.</p></div>`);
   if(R.final)h+=`<div class="card cm-final"><p style="margin:0">✓ Compra de ${mesNome(k)} finalizada em ${dm(R.fimEm)}. Ela já entra nas comparações de total e de categoria.</p><button class="linkbtn" data-acao="reabrir">Reabrir</button></div>`;
-  h+=`<div class="cm-loja"><span>Onde estão comprando agora? (vale para os próximos itens marcados)</span><div class="chips" id="cmLojas">${lojas.map(l=>`<button type="button" data-loja="${esc(l)}" aria-pressed="${cm.loja===l}">${esc(l)}</button>`).join("")}</div></div>`;
+  h+=`<div class="cm-loja"><span>Onde estão comprando agora? (vale para os próximos itens que marcarem na bolinha)</span><div class="chips" id="cmLojas">${lojas.map(l=>`<button type="button" data-loja="${esc(l)}" aria-pressed="${cm.loja===l}">${esc(l)}</button>`).join("")}<button type="button" class="cm-loja-add" data-locais="1" aria-label="Adicionar ou remover locais de compra">+ Local</button></div></div>`;
   h+=`<div class="cm-busca"><input id="cmBusca" type="search" placeholder="Procurar item na lista" value="${esc(cm.busca)}" autocomplete="off" enterkeyhint="search" aria-label="Procurar item na lista"></div>`;
   const nF=its.filter(x=>!x.comprado).length;
   h+=`<div class="chips filtro" id="cmFiltro">${[["todos",`Todos (${its.length})`],["falta",`Falta (${nF})`],["ok",`Comprados (${its.length-nF})`]].map(([v,t])=>`<button type="button" data-cf="${v}" aria-pressed="${cm.filtro===v}">${t}</button>`).join("")}</div>`;
@@ -2565,7 +2624,7 @@ function htmlLista(R,lojas){
   const porCat={};vis.forEach(x=>{const c=x.categoria||Core.categoriaDe(x.nome);(porCat[c]=porCat[c]||[]).push(x);});
   h+=`<div class="card cm-lista">${Core.CATS_COMPRAS.filter(c=>porCat[c]).map(c=>{const arr=porCat[c].sort((a,b)=>(a.comprado?1:0)-(b.comprado?1:0)||(a.criado||0)-(b.criado||0)),tot=sum(arr.filter(x=>x.comprado).map(Core.totalItem));
     return `<h3 class="cm-cat" style="--cc:${Core.corCat(c)}"><em>${c}</em>${tot>0?`<span>${brl(tot)}</span>`:""}</h3><ul class="cm-ul">${arr.map(row).join("")}</ul>`;}).join("")||(q?`<div style="padding:12px"><p class="small" style="margin:0 0 8px">Nada encontrado para “${esc(cm.busca)}”.</p><button class="btn ghost" data-addbusca="1" style="width:100%">Adicionar “${esc(cm.busca)}” à lista</button></div>`:`<p class="muted" style="padding:12px;margin:0">Nada aqui.</p>`)}</div>
-    <p class="sec-note">Toque no nome para mudar quantidade em kg, categoria ou mercado. O preço é por unidade (ou por kg). ▲▼ compara com a última vez que vocês compraram o item.</p>`;
+    <p class="sec-note">Digitar o preço não marca o item: só a bolinha marca como comprado (e grava o mercado e o dia, que decide em que fatura cai). Itens com preço e sem marcar entram no previsto. Toque no nome para mudar quantidade em kg, categoria, mercado ou desconto. O preço é por unidade (ou por kg). ▲▼ compara com a última vez que vocês compraram o item.</p>`;
   if(!R.final&&R.comprados)h+=`<div class="card" style="margin-top:12px"><button class="btn" data-acao="finalizar" style="width:100%">✓ Finalizar a compra de ${mesNome(k)}</button>
     <p class="small muted" style="margin:8px 0 0">Finalize quando terminarem todas as idas ao mercado do mês. O total e as categorias só são comparados com meses finalizados (um mês pela metade pareceria "econômico"). A comparação de preço de cada item vale desde já.${R.pendentes?` Os itens que faltarem podem ir para a lista de ${mesNome(addMonths(k,1))}.`:""}</p></div>`;
   return h;
@@ -2573,8 +2632,8 @@ function htmlLista(R,lojas){
 const cmItem=id=>S.compras.find(x=>x.id===id);
 async function cmSalvarPreco(inp){const x=cmItem(inp.dataset.preco);if(!x)return;const t=inp.value.trim();if(t===""){return;}
   const v=money(t);if(isNaN(v)||v<0){toast("Preço inválido.");inp.value=Number(x.preco)>0?fmtInput(Number(x.preco)):"";return;}
-  const d={preco:r2(v)};if(!x.comprado){d.comprado=true;d.data=ymd(new Date());}if(!x.local&&cm.loja)d.local=cm.loja;
-  if(Number(x.preco)===d.preco&&x.comprado&&(x.local||!cm.loja))return;await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:d}]));}
+  /* só grava o preço: o item só conta como comprado quando a bolinha é marcada */
+  if(Number(x.preco)===r2(v))return;await write(()=>aplicar([{t:"merge",col:"compras",id:x.id,data:{preco:r2(v)}}]));}
 async function cmAdicionar(){const inp=$("cmNovo");const nome=inp.value.trim();if(!nome)return;
   const ja=Core.itensCompra(S,cm.mes).find(x=>Core.prodKey(x.nome)===Core.prodKey(nome));if(ja){toast(`"${ja.nome}" já está na lista.`);inp.value="";return;}
   const ant=[...S.compras].filter(x=>Core.prodKey(x.nome)===Core.prodKey(nome)).sort((a,b)=>String(b.mes).localeCompare(String(a.mes)))[0];
@@ -2593,6 +2652,7 @@ $("tab-compras").addEventListener("click",async e=>{
   if(t.closest("#cmAdd")){cmAdicionar();return;}
   if(t.closest("[data-addbusca]")){$("cmNovo").value=cm.busca;cm.busca="";const bi=$("cmBusca");if(bi){bi.value="";bi.blur();}cmAdicionar();return;}   /* no iPhone o botão não tira o foco da busca: limpa e solta antes */
   if(t.closest("[data-copiar]")){cmCopiar();return;}
+  if(t.closest("[data-locais]")){abrirLocais();return;}
   const lj=t.closest("[data-loja]");if(lj){cm.loja=lj.dataset.loja;lsSet("nm-cm-loja",cm.loja);renderCompras();return;}   /* escolha única: tocar de novo não desmarca */
   const cf=t.closest("[data-cf]");if(cf){cm.filtro=cf.dataset.cf;renderCompras();return;}
   const ck=t.closest("[data-chk]");if(ck){const x=cmItem(ck.dataset.chk);if(!x)return;
@@ -2612,7 +2672,7 @@ $("tab-compras").addEventListener("keydown",e=>{
   if(p.value.trim()===""&&p.placeholder&&p.placeholder!=="R$")p.value=p.placeholder;   /* Enter vazio = mesmo preço da última vez */
   cmSalvarPreco(p);   /* salva aqui: valor colocado pelo código não dispara o evento "change" */
   const todos=[...document.querySelectorAll("#cmCorpo [data-preco]")],i=todos.indexOf(p);
-  const prox=todos.slice(i+1).find(el=>{const x=cmItem(el.dataset.preco);return x&&!x.comprado;});cm.prox=prox?prox.dataset.preco:null;p.blur();
+  const resto=todos.slice(i+1),prox=resto.find(el=>{const x=cmItem(el.dataset.preco);return x&&!x.comprado&&!(Number(x.preco)>0);})||resto.find(el=>{const x=cmItem(el.dataset.preco);return x&&!x.comprado;});cm.prox=prox?prox.dataset.preco:null;p.blur();
   setTimeout(()=>{if(!cm.prox)return;const el=[...document.querySelectorAll("#cmCorpo [data-preco]")].find(x=>x.dataset.preco===cm.prox);cm.prox=null;if(el)el.focus();},90);});
 /* selecionar tudo só quando a pessoa toca no campo; quando o app devolve o foco depois de redesenhar, não (senão a próxima tecla apaga o que foi digitado) */
 /* seleciona tudo NA HORA do toque (nunca depois: uma seleção atrasada, no meio da digitação, faria a próxima tecla apagar o que já foi digitado) */
@@ -2641,6 +2701,19 @@ async function cmFinalizar(){const k=cm.mes,its=Core.itensCompra(S,k),pend=its.f
   await write(()=>aplicar(ops),`Compra de ${mesNome(k)} finalizada.${levou?` ${plural(levou,"item foi","itens foram")} para ${mesNome(prox)}.`:""}`);}
 async function cmReabrir(){const k=cm.mes;if(!confirm(`Reabrir a compra de ${mesNome(k)}? Ela sai das comparações de total e de categoria até ser finalizada de novo.`))return;
   await write(()=>aplicar([{t:"merge",col:"config",id:"geral",data:{comprasFim:{...fimMap(),[k]:null}}}]),"Compra reaberta.");}
+
+/* ---------- locais de compra (adicionar e remover pela própria aba) ---------- */
+function renderLocais(){const lojas=Core.mercadosDe(S);
+  $("lcLista").innerHTML=lojas.map(l=>`<li><div class="li-main"><div class="t"><i class="cm-dot" style="background:${lojaCor(l,lojas)}"></i>${esc(l)}</div></div><button type="button" class="linkbtn" data-rmloja="${esc(l)}" aria-label="Remover ${esc(l)}">Remover</button></li>`).join("")||`<li class="muted">Nenhum local.</li>`;}
+function abrirLocais(){renderLocais();$("lcNovo").value="";abrir("sheetLocais");setTimeout(()=>$("lcNovo").focus(),80);}
+async function salvarLocais(lista,msg){const ok=await write(()=>aplicar([{t:"merge",col:"config",id:"geral",data:{mercados:lista}}]),msg);if(ok)renderLocais();return ok;}
+async function addLocal(){const nome=$("lcNovo").value.trim().replace(/\s+/g," ");if(!nome){$("lcNovo").focus();return;}
+  const lojas=Core.mercadosDe(S),ja=lojas.find(l=>Core.prodKey(l)===Core.prodKey(nome));if(ja){toast(`"${ja}" já está na lista.`);return;}
+  if(await salvarLocais([...lojas,nome],`${nome} adicionado.`)){cm.loja=nome;lsSet("nm-cm-loja",nome);$("lcNovo").value="";renderCompras();}}
+$("lcAdd").onclick=addLocal;$("lcNovo").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addLocal();}});
+$("lcLista").addEventListener("click",async e=>{const b=e.target.closest("[data-rmloja]");if(!b)return;const l=b.dataset.rmloja,lojas=Core.mercadosDe(S);
+  if(lojas.length<=1){toast("Deixe pelo menos um local.");return;}if(!confirm(`Remover "${l}" dos locais de compra?`))return;
+  if(await salvarLocais(lojas.filter(x=>x!==l),`${l} removido.`)){if(cm.loja===l){cm.loja="";lsSet("nm-cm-loja","");}renderCompras();}});
 
 /* ---------- folha do item ---------- */
 let ciSel=null,ciUn="un";
@@ -3006,6 +3079,7 @@ pl.addEventListener("change",async e=>{
     if(v.value.trim()===""||isNaN(n)||n<0){toast("Valor inválido.");v.value=fmtInput(c.valor);return;}
     if(Math.abs(r2(n)-Number(c.valor))<0.005){v.value=fmtInput(c.valor);return;}
     await write(()=>db.doc("contas/"+c.id).update({valor:r2(n)}),`${c.nome}: ${brl(r2(n))}`);return;}
+  const pf=e.target.closest(".plfat");if(pf){await togglePagaFatura(pf.dataset.k,pf.checked);return;}
   const p=e.target.closest(".plp");if(p)await write(()=>db.doc("contas/"+p.dataset.c).update({paga:p.checked}));});
 /* Enter: sai da célula (o que salva) e vai para a próxima, mesmo que a tabela seja redesenhada ao salvar */
 let plProx=null;
