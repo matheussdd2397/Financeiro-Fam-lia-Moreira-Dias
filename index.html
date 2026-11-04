@@ -100,7 +100,7 @@ input:focus,select:focus{border-color:var(--petrol);outline:none}
 .btn.ghost{background:transparent;color:var(--petrol);border:1px solid var(--petrol)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .check{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--ink)}
-.check input{width:20px;height:20px;accent-color:var(--petrol)}
+.check input{width:20px;height:20px;accent-color:var(--petrol);flex:0 0 auto}
 
 /* lists */
 ul.list{list-style:none;margin:0;padding:0}
@@ -282,7 +282,7 @@ ul.list li.tap:active{background:var(--paper)}
 .btn.ghost.danger{background:transparent;color:var(--warn);border:1px solid var(--warn)}
 .card.flat{box-shadow:none;background:var(--paper)}
 label.check.big{font-size:1rem;color:var(--ink);padding:6px 0}
-label.check.big input{width:22px;height:22px}
+label.check.big input{width:22px;height:22px;flex:0 0 22px}
 .aj-h{margin:20px 0 8px;font-size:1rem}
 .grid.metas{grid-template-columns:repeat(3,1fr)}
 .grid.metas .soma b{display:block;padding:10px 0;font-size:1.1rem}
@@ -618,6 +618,9 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
 .ec-hist div span{flex:1}
 .ec-hist div:last-child{border-bottom:0}
 .pl-env{display:block;font-size:.72rem;color:var(--muted);font-weight:500}
+.env-oferta{margin-top:12px;border:1.5px dashed var(--petrol)}
+.eo-btns{display:flex;gap:8px}
+.eo-btns .btn{flex:1 1 0;padding:10px 12px}
 @media (max-width:370px){.ec-top{flex-wrap:wrap}.ec-btn{flex:1 1 100%;order:3;margin-top:4px}}
 </style>
 </head>
@@ -845,7 +848,8 @@ table.pl input.plfat{width:22px;height:22px;accent-color:var(--petrol)}
     <div class="full"><label>Grupo</label><div class="chips" id="scTipo"></div></div>
     <div class="full"><label class="check big"><input type="checkbox" id="scCartao"> <span>💳 É pago no cartão <small class="muted">(entra na fatura prevista)</small></span></label>
       <label class="check" id="scTodosBox" style="margin-top:8px"><input type="checkbox" id="scTodos" checked> Valer para todos os meses desta conta</label></div>
-    <div class="full"><label class="check big"><input type="checkbox" id="scEnvelope"> <span>⛽ Vai sendo gasta aos poucos <small class="muted">(ex.: combustível; cada lançamento sai desta conta, não do dinheiro da semana)</small></span></label></div>
+    <div class="full"><label class="check big"><input type="checkbox" id="scEnvelope"> <span>⛽ Vai sendo gasta aos poucos <small class="muted">(ex.: combustível)</small></span></label>
+      <p class="small muted" style="margin:2px 0 0 30px">Marcando, a aba Semana ganha um quadro para lançar cada abastecimento. Eles saem desta conta e não mexem no dinheiro da semana.</p></div>
     <div class="full" id="scPagaBox"><label class="check big"><input type="checkbox" id="scPaga"> <span>Já foi paga</span></label></div>
     <div class="full" id="scRepetirBox"><label for="scRepetir">Repetir nos meses seguintes</label><select id="scRepetir"></select></div>
     <div class="full"><button class="btn" id="scSalvar" style="width:100%">Salvar</button></div>
@@ -1682,7 +1686,11 @@ const usadoConta=c=>r2(sum(usosDe(c.nome,c.mes).map(u=>Number(u.valor)||0)));
 let usSel=null,usQuem=null;
 function renderEnvelopes(){
   const box=$("semEnv");const k=saldoAte(ui.week).k;const lst=contasMes(k).filter(ehEnvelope);
-  if(!lst.length){box.innerHTML="";return;}
+  if(!lst.length){
+    const of=!envNomes().length&&!ls("nm-env-dispensa","")?contasMes(k).find(c=>/combust|gasolin|posto|etanol/.test(slug(c.nome))):null;
+    box.innerHTML=of?`<div class="card env-oferta"><p style="margin:0 0 10px">⛽ <b>${esc(of.nome)}</b> é gasto aos poucos, por semana? Ative o controle: cada abastecimento sai dessa conta (${brl0(of.valor)} em ${mesCurto(k)}) e <b>não mexe no dinheiro da semana</b>.</p>
+      <div class="eo-btns"><button type="button" class="btn" data-envativar="${esc(of.nome)}">Ativar o controle</button><button type="button" class="btn ghost" data-envnao="1">Agora não</button></div></div>`:"";
+    return;}
   const hoje=new Date(today.getFullYear(),today.getMonth(),today.getDate()),hk=monthKey(today),[ay,am]=k.split("-").map(Number),diasMes=new Date(ay,am,0).getDate();
   box.innerHTML=lst.map(c=>{const us=usosDe(c.nome,k).sort((a,b)=>String(b.data).localeCompare(String(a.data))||(b.criado||0)-(a.criado||0));
     const val=Number(c.valor)||0,usado=r2(sum(us.map(u=>Number(u.valor)||0))),resta=r2(val-usado),pc=val>0?Math.min(1,usado/val):0,ico=icoEnv(c.nome),comb=ico==="⛽";
@@ -1716,6 +1724,8 @@ $("usSalvar").onclick=async()=>{const v=money($("usValor").value),d=$("usData").
   const ok=await write(()=>aplicar([{t:"set",col:"usos",id,data:{conta:c.nome,data:d,valor:r2(v),quem:usQuem||"",criado:Date.now()}}]),`${c.nome}: ${brl(r2(v))} lançados. ${resta>=0?`Sobram ${brl0(resta)}.`:`Passou ${brl0(-resta)}.`}`);
   if(ok)fechar("sheetUso");};
 $("semEnv").addEventListener("click",async e=>{const l=e.target.closest("[data-envlanc]");if(l){abrirUso(l.dataset.envlanc);return;}
+  const at=e.target.closest("[data-envativar]");if(at){const n=at.dataset.envativar;await write(()=>aplicar([{t:"merge",col:"config",id:"geral",data:{envelopes:[...envNomes().filter(x=>slug(x)!==slug(n)),n]}}]),`Controle de ${n} ativado. Toque em Abastecer para lançar.`);return;}
+  if(e.target.closest("[data-envnao]")){lsSet("nm-env-dispensa","1");renderEnvelopes();return;}
   const d=e.target.closest("[data-envdel]");if(d){const u=S.usos.find(x=>x.id===d.dataset.envdel);if(!u||!confirm(`Apagar o lançamento de ${brl(Number(u.valor)||0)} (${dm(u.data)})?`))return;
     await write(()=>aplicar([{t:"del",col:"usos",id:u.id}]),"Lançamento apagado.");}});
 function renderSemana(){renderEnvelopes();
@@ -3085,7 +3095,8 @@ $("scSalvar").onclick=async()=>{
   if(!nome){toast("Digite o nome da conta.");$("scNome").focus();return;}
   if(!(v>0)){toast("Digite o valor.");$("scValor").focus();return;}
   const cart=$("scCartao").checked;const ops=[];
-  {const quer=$("scEnvelope").checked,tem=ehEnvelope({nome});if(quer!==tem){const l=envNomes().filter(n=>slug(n)!==slug(nome));if(quer)l.push(nome);ops.push({t:"merge",col:"config",id:"geral",data:{envelopes:l}});}}
+  {const quer=$("scEnvelope").checked,tem=ehEnvelope({nome});if(quer!==tem){const l=envNomes().filter(n=>slug(n)!==slug(nome));if(quer)l.push(nome);else lsSet("nm-env-dispensa","1");   /* desligou de propósito: não oferece de novo */
+    ops.push({t:"merge",col:"config",id:"geral",data:{envelopes:l}});}}
   if(E.modo==="editar"){
     ops.push({t:"merge",col:"contas",id:E.id,data:{valor:r2(v),paga:$("scPaga").checked,tipo:E.tipo,noCartao:cart}});
     if($("scTodos").checked&&(cart!==E.cartaoOrig||E.tipo!==E.tipoOrig))
