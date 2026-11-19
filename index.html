@@ -819,6 +819,16 @@ dialog.sheet[open] .sheet-in{animation:nmSobe .24s cubic-bezier(.2,.8,.2,1)}
 .cf-hist>div{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.86rem;align-items:baseline}
 .cf-hist>div:last-child{border-bottom:0}
 .cf-hist .num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* login com senha */
+.lg-ou{display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:var(--muted);font-size:.78rem}
+.lg-ou::before,.lg-ou::after{content:"";flex:1;height:1px;background:var(--line)}
+.lg-form{display:grid;gap:10px;max-width:340px;margin:0 auto;text-align:left}
+.lg-form input{width:100%;min-height:48px;border-radius:12px;border:1px solid transparent;background:var(--paper);padding:0 14px;font:inherit;color:var(--ink)}
+.lg-form input:focus{border-color:var(--petrol);box-shadow:0 0 0 3px var(--petrol-soft);outline:0}
+.lg-form .linkbtn{justify-self:center}
+.lg-dica{max-width:340px;margin:10px auto 0;line-height:1.45}
+#ajSenhaBox[hidden]{display:none}
 </style>
 </head>
 <body class="deslogado">
@@ -835,7 +845,15 @@ dialog.sheet[open] .sheet-in{animation:nmSobe .24s cubic-bezier(.2,.8,.2,1)}
   <div id="login" class="card" hidden style="margin-top:16px;text-align:center;padding:28px 16px">
     <p style="font-size:1.05rem;margin-bottom:14px">Entre com a sua conta Google para ver os gastos de vocês.</p>
     <button class="btn" id="btnLogin">Entrar com Google</button>
+    <div class="lg-ou"><span>ou, no app instalado no iPhone</span></div>
+    <form id="lgForm" class="lg-form" novalidate>
+      <input id="lgEmail" type="email" autocomplete="username" inputmode="email" placeholder="E-mail" aria-label="E-mail">
+      <input id="lgSenha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
+      <button class="btn ghost" id="btnSenha" type="submit">Entrar com senha</button>
+      <button class="linkbtn" id="btnEsqueci" type="button">Esqueci a senha</button>
+    </form>
     <p class="small muted" id="loginErro" style="margin-top:12px"></p>
+    <p class="small muted lg-dica" id="lgDica" hidden>No iPhone, o login com Google não funciona no app instalado na tela inicial. Entre uma vez pelo Safari, crie uma senha em Ajustes › Acesso e use a senha aqui.</p>
   </div>
 
   <!-- SEMANA -->
@@ -1304,6 +1322,13 @@ dialog.sheet[open] .sheet-in{animation:nmSobe .24s cubic-bezier(.2,.8,.2,1)}
     <div class="full"><p class="small muted" style="margin:0">Usados só no botão "Atualizar cotações" da aba Invest. Ficam guardados na sua conta, e não no código do app. O dólar do dia é buscado sem token.</p></div>
   </div>
   <button class="btn" id="cSalvar" style="width:100%;margin-top:14px">Salvar ajustes</button>
+  <h3 class="aj-h">Acesso</h3>
+  <p class="small muted" id="ajSenhaInfo" style="margin:0 0 10px"></p>
+  <div class="grid" id="ajSenhaBox">
+    <div class="m2"><label for="ajSenha1">Nova senha</label><input id="ajSenha1" type="password" autocomplete="new-password" placeholder="mínimo 6 caracteres"></div>
+    <div class="m2"><label for="ajSenha2">Repita a senha</label><input id="ajSenha2" type="password" autocomplete="new-password"></div>
+    <div class="full"><button class="btn ghost" id="ajSenhaCriar" type="button" style="width:100%">Criar senha para o iPhone</button></div>
+  </div>
   <h3 class="aj-h">Backup dos dados</h3>
   <p class="small muted" style="margin:0 0 10px">Baixe uma cópia de vez em quando. Restaurar grava os dados do arquivo por cima dos atuais. Arquivos de atualização também entram por aqui.</p>
   <div class="grid">
@@ -1322,7 +1347,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
 /* Firebase: biblioteca carregada direto dos servidores do Google */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { initializeFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* Configuração do projeto "Financeiro Moreira Dias" (não é senha; quem protege os dados são as regras do Firestore) */
 const firebaseConfig = {
@@ -3613,6 +3638,37 @@ $("btnLogin").onclick=async()=>{$("loginErro").textContent="";
     else if(e&&e.code!=="auth/popup-closed-by-user"&&e.code!=="auth/cancelled-popup-request"){$("loginErro").textContent="Não foi possível entrar ("+(e.code||"erro")+"). Tente de novo.";}
   }};
 $("btnSair").onclick=()=>signOut(auth);
+/* ---------- login com e-mail e senha (para o app instalado no iPhone, onde o login com Google não volta) ---------- */
+const ehIOSInstalado=(()=>{try{return /iPhone|iPad|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches);}catch(e){return false;}})();
+if(ehIOSInstalado)$("lgDica").hidden=false;
+const ERRO_SENHA={"auth/invalid-credential":"E-mail ou senha incorretos. Se ainda não criou a senha, entre pelo Safari e crie em Ajustes › Acesso.","auth/wrong-password":"Senha incorreta.","auth/user-not-found":"Este e-mail ainda não tem senha. Crie em Ajustes › Acesso, entrando pelo Safari.","auth/invalid-email":"E-mail inválido.","auth/too-many-requests":"Muitas tentativas. Espere alguns minutos e tente de novo.","auth/network-request-failed":"Sem internet. Confira a conexão.","auth/operation-not-allowed":"O login com senha ainda não foi ativado no Firebase (Authentication › E-mail/senha).","auth/missing-password":"Digite a senha."};
+const msgSenha=e=>ERRO_SENHA[e&&e.code]||`Não foi possível entrar (${(e&&e.code)||"erro"}).`;
+$("lgForm").addEventListener("submit",async ev=>{ev.preventDefault();$("loginErro").textContent="";
+  const em=$("lgEmail").value.trim(),pw=$("lgSenha").value;
+  if(!em){$("loginErro").textContent="Digite o e-mail.";$("lgEmail").focus();return;}
+  if(!pw){$("loginErro").textContent="Digite a senha.";$("lgSenha").focus();return;}
+  $("btnSenha").disabled=true;
+  try{await signInWithEmailAndPassword(auth,em,pw);}catch(e){$("loginErro").textContent=msgSenha(e);}
+  finally{$("btnSenha").disabled=false;}});
+$("btnEsqueci").onclick=async()=>{const em=$("lgEmail").value.trim();
+  if(!em){$("loginErro").textContent="Digite o e-mail acima e toque de novo em Esqueci a senha.";$("lgEmail").focus();return;}
+  try{await sendPasswordResetEmail(auth,em);$("loginErro").textContent=`Enviamos um link para ${em} para criar uma nova senha. Confira também o spam.`;}
+  catch(e){$("loginErro").textContent=msgSenha(e);}};
+function renderAcesso(){const u=auth.currentUser;if(!u){$("ajSenhaInfo").textContent="";return;}
+  const tem=(u.providerData||[]).some(p=>p.providerId==="password");
+  $("ajSenhaBox").hidden=tem;
+  $("ajSenhaInfo").innerHTML=tem?`✓ ${esc(u.email)} já tem senha. No iPhone, no app instalado, use "Entrar com senha". Para trocar, saia e toque em "Esqueci a senha".`
+    :`Crie uma senha para entrar com <b>${esc(u.email)}</b> no app instalado no iPhone, onde o login com Google não funciona. É a mesma conta, com os mesmos dados.`;}
+$("ajSenhaCriar").onclick=async()=>{const u=auth.currentUser;if(!u)return;
+  const a=$("ajSenha1").value,b=$("ajSenha2").value;
+  if(a.length<6){toast("A senha precisa ter pelo menos 6 caracteres.");$("ajSenha1").focus();return;}
+  if(a!==b){toast("As duas senhas não são iguais.");$("ajSenha2").focus();return;}
+  $("ajSenhaCriar").disabled=true;
+  try{await linkWithCredential(u,EmailAuthProvider.credential(u.email,a));$("ajSenha1").value=$("ajSenha2").value="";renderAcesso();toast("Senha criada. No iPhone, use Entrar com senha.");}
+  catch(e){const c=e&&e.code;toast(c==="auth/operation-not-allowed"?"Antes, ative E-mail/senha no Firebase (Authentication › Método de login).":c==="auth/requires-recent-login"?"Por segurança, saia, entre de novo com o Google e tente outra vez.":c==="auth/provider-already-linked"?"Esta conta já tem senha.":c==="auth/weak-password"?"Senha fraca: use pelo menos 6 caracteres.":`Não foi possível criar a senha (${c||"erro"}).`);}
+  finally{$("ajSenhaCriar").disabled=false;}};
+$("btnAjustes").addEventListener("click",()=>setTimeout(renderAcesso,0));
+
 getRedirectResult(auth).catch(e=>{$("loginErro").textContent="Não foi possível entrar ("+(e.code||"erro")+").";});
 onAuthStateChanged(auth,u=>{
   const logado=!!u;document.body.classList.toggle("deslogado",!logado);
