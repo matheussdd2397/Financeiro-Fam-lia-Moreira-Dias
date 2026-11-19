@@ -799,6 +799,26 @@ ul.list li .pill{font-size:.66rem;padding:2px 7px;vertical-align:2px}
 @keyframes nmSobe{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
 dialog.sheet[open] .sheet-in{animation:nmSobe .24s cubic-bezier(.2,.8,.2,1)}
 @media (prefers-reduced-motion: reduce){#tab-semana,#tab-painel,#tab-ano,#tab-cartao,#tab-contas,#tab-compras,#tab-invest,#tab-desejos,.toast,dialog.sheet .sheet-in{animation:none!important}}
+
+/* conferir a fatura com o banco */
+.fat-conf{margin-top:12px}
+.fcf-top{display:flex;align-items:center;gap:12px}
+.fcf-top>div{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.fcf-top small{color:var(--muted);font-size:.78rem}
+.fcf-top .btn{flex:0 0 auto;min-height:40px;padding:8px 16px;font-size:.86rem}
+.fcf-g{margin-top:12px;background:var(--paper);border-radius:14px;padding:10px 12px;font-size:.9rem}
+.fcf-g .sobe b,.cf-hist .sobe{color:var(--warn)}
+.fcf-g .desce b,.cf-hist .desce{color:var(--amber)}
+.cf-res{background:var(--paper);border-radius:16px;padding:14px;font-size:.88rem;line-height:1.45}
+.cf-res.ok{background:var(--petrol-soft)}
+.cf-res.aviso{background:var(--amber-soft)}
+.cf-res.ruim{background:var(--warn-soft);color:var(--warn);font-weight:600}
+.cf-res p{margin:8px 0 0}
+.cf-l{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-variant-numeric:tabular-nums}
+.cf-l.tot{border-top:1px solid color-mix(in srgb,var(--ink) 14%,transparent);margin-top:4px;padding-top:7px;font-weight:800}
+.cf-hist>div{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.86rem;align-items:baseline}
+.cf-hist>div:last-child{border-bottom:0}
+.cf-hist .num{text-align:right;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body class="deslogado">
@@ -1203,6 +1223,22 @@ dialog.sheet[open] .sheet-in{animation:nmSobe .24s cubic-bezier(.2,.8,.2,1)}
 <dialog class="sheet" id="sheetMais" aria-labelledby="maisT"><div class="sheet-in"><div class="sheet-grip"></div>
   <div class="sheet-head"><h2 id="maisT">Mais</h2><button class="x" data-fechar="sheetMais" aria-label="Fechar">✕</button></div>
   <div class="mais-l" id="maisLista"></div></div></dialog>
+<dialog class="sheet" id="sheetConf" aria-labelledby="cfTitulo"><div class="sheet-in">
+  <div class="sheet-grip"></div>
+  <div class="sheet-head"><h2 id="cfTitulo">Conferir com o banco</h2><button class="x" data-fechar="sheetConf" aria-label="Fechar">✕</button></div>
+  <p class="small muted" style="margin:0 0 14px">Copie os valores do quadro <b>Resumo da Fatura</b> do banco. Só o primeiro é obrigatório.</p>
+  <div class="grid">
+    <div class="full"><label for="cfCompras">Total de despesas (Brasil + exterior)</label><input id="cfCompras" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+    <div class="m2"><label for="cfSaldoAnt">Saldo anterior</label><input id="cfSaldoAnt" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+    <div class="m2"><label for="cfPag">Total de pagamentos</label><input id="cfPag" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+    <div class="full"><label for="cfAPagar">Total a pagar (saldo desta fatura)</label><input id="cfAPagar" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+    <div class="full"><div class="cf-res" id="cfRes" aria-live="polite"></div></div>
+    <div class="full"><button class="btn" id="cfSalvar" style="width:100%">Salvar conferência</button></div>
+    <div class="full"><button class="btn ghost danger" id="cfApagar" style="width:100%" hidden>Apagar conferência</button></div>
+    <div class="full" id="cfHist"></div>
+  </div>
+</div></dialog>
+
 <dialog class="sheet" id="sheetMes" aria-labelledby="smTitulo"><div class="sheet-in">
   <div class="sheet-grip"></div>
   <div class="sheet-head"><h2 id="smTitulo">Salário e orçamento</h2><button class="x" data-fechar="sheetMes" aria-label="Fechar">✕</button></div>
@@ -2241,7 +2277,7 @@ function renderFaturaMes(){
     <div class="big num">${brl(F.total)}</div>
     <p class="fh-sub">${pm>0?`Parcelas: ${brl0(pm)}${pct!=null?` · ${pct}% do salário (meta ${M.cartao}%)`:""}`:"Sem parcelas neste mês"}</p>
     <div class="fh-acoes">${chip}${k!==cur?`<button type="button" class="fh-link" data-fathoje>voltar para ${MESES[today.getMonth()]}</button>`:""}<span class="fh-esp"></span><button type="button" class="fat-paga${paga?" ok":""}" data-fatpaga="${k}" aria-pressed="${!!paga}">${paga?`✓ Paga${fatDm(paga)?" em "+fatDm(paga):""}`:"Marcar como paga"}</button></div></div>`;
-  if(!(F.total>0)){$("fatCorpo").innerHTML=`<div class="card fat-comp"><p class="muted" style="margin:0">Nada previsto para a fatura de ${mesNome(k)}.</p></div>`;return;}
+  if(!(F.total>0)){$("fatCorpo").innerHTML=`<div class="card fat-comp"><p class="muted" style="margin:0">Nada previsto para a fatura de ${mesNome(k)}.</p></div>`+confCard(k,F.total);return;}
   const linhas=[
     {k:"parc",cor:"var(--petrol)",t:"Parcelas e assinaturas",n:F.itens.length,v:F.parcelas,lista:F.itens.map(x=>[esc(x.nome)+(x.info?(x.info.estado==="ativa"?` <small>${x.info.i}/${x.info.n}</small>`:""):` <small>mensal</small>`),x.valor])},
     {k:"fixa",cor:"var(--amber)",t:"Contas fixas no cartão",n:F.fixasLista.length,v:F.fixas,lista:F.fixasLista.map(x=>[esc(x.nome),x.valor])},
@@ -2253,9 +2289,57 @@ function renderFaturaMes(){
     return l.lista&&l.lista.length?`<details class="fc-row" data-k="${l.k}"${fatAb.has(l.k)?" open":""}><summary>${resumo}</summary><div class="fc-lista">${l.lista.map(([n,v])=>`<div><span>${n}</span><b>${brl(v)}</b></div>`).join("")}</div></details>`:`<div class="fc-row fc-fixa">${resumo}</div>`;};
   $("fatCorpo").innerHTML=`<div class="card fat-comp">${stackBar(linhas.map(l=>({v:l.v,cor:l.cor,label:l.t})),"Composição da fatura")}<div class="fc-linhas">${linhas.map(row).join("")}</div>
     ${F.gastos>0?`<p class="fc-nota">Os gastos da semana entram pelo mês em que foram lançados${F.aPagar>0?`; ${brl(F.aPagar)} ainda não foram pagos`:""}. O cartão fecha no dia ${R.diaFechamento}.</p>`:""}
-    ${F.mercadoDuas?`<p class="fc-nota fc-alerta">⚠ Duas compras de mercado nesta fatura (uma foi feita depois do fechamento). A fatura anterior veio mais leve: a diferença precisa estar guardada.</p>`:""}</div>`;
+    ${F.mercadoDuas?`<p class="fc-nota fc-alerta">⚠ Duas compras de mercado nesta fatura (uma foi feita depois do fechamento). A fatura anterior veio mais leve: a diferença precisa estar guardada.</p>`:""}</div>`+confCard(k,F.total);
 }
 $("fatCorpo").addEventListener("toggle",e=>{const d=e.target;if(!d||d.tagName!=="DETAILS"||!d.dataset.k)return;if(d.open)fatAb.add(d.dataset.k);else fatAb.delete(d.dataset.k);},true);
+
+/* ---------- conferir a fatura com o banco ----------
+   Guarda em meses[k].faturaReal o que o banco cobrou (do "Resumo da Fatura") e compara com o previsto pelo app.
+   O "a pagar" do banco já desconta o que foi pago antecipado no mês; por isso a comparação certa é previsto x total de despesas. */
+function confCalc(d,previsto){
+  const c=Number(d.compras)||0,temPg=d.pagamentos!=null&&d.saldoAnt!=null,ant=temPg?Math.max(0,r2(d.pagamentos-d.saldoAnt)):null,ap=ant!=null?r2(c-ant):null;
+  return {compras:c,previsto,dif:r2(c-previsto),antecipado:ant,aPagar:ap,difBanco:ap!=null&&d.aPagar!=null?r2(d.aPagar-ap):null};
+}
+const confTxt=x=>Math.abs(x.dif)<=1?"Bateu com o previsto.":x.dif>0?`O banco cobrou ${brl(x.dif)} a mais que o previsto.`:`O banco cobrou ${brl(-x.dif)} a menos que o previsto.`;
+function confCard(k,previsto){
+  const d=(S.meses[k]||{}).faturaReal;
+  if(!d)return `<div class="card fat-conf"><div class="fcf-top"><div><b>Conferir com o banco</b><small>Quando a fatura de ${mesCurto(k)} chegar, compare com o previsto.</small></div><button type="button" class="btn ghost" data-fatconf="${k}">Conferir</button></div></div>`;
+  const x=confCalc(d,previsto),ok=Math.abs(x.dif)<=1;
+  return `<div class="card fat-conf"><div class="fcf-top"><div><b>${ok?"✓ ":""}Conferida com o banco</b><small>${d.em?"em "+fatDm(d.em):""}</small></div><button type="button" class="btn ghost" data-fatconf="${k}">Editar</button></div>
+    <div class="fcf-g"><div class="cf-l"><span>Previsto pelo app</span><b>${brl(x.previsto)}</b></div><div class="cf-l"><span>Despesas no banco</span><b>${brl(x.compras)}</b></div><div class="cf-l tot ${ok?"":x.dif>0?"sobe":"desce"}"><span>Diferença</span><b>${ok?"R$ 0,00":(x.dif>0?"+":"−")+brl(Math.abs(x.dif))}</b></div></div>
+    ${x.aPagar!=null?`<p class="fc-nota">Pago antecipado no mês: ${brl(x.antecipado)} · a pagar: <b>${brl(x.aPagar)}</b>${x.difBanco!=null?(Math.abs(x.difBanco)<=1?" (igual ao banco)":`; o banco mostra ${brl(d.aPagar)}`):""}.</p>`:""}</div>`;
+}
+let cfK=null;
+const cfLer=()=>{const v=id=>{const t=$(id).value.trim();if(!t)return null;const n=money(t);return isNaN(n)||n<0?NaN:r2(n);};return {compras:v("cfCompras"),saldoAnt:v("cfSaldoAnt"),pagamentos:v("cfPag"),aPagar:v("cfAPagar")};};
+function cfAtualiza(){
+  const d=cfLer(),box=$("cfRes"),prev=Core.relatorio(S,cfK,new Date()).fatura.total;
+  if(Object.values(d).some(v=>v!==null&&isNaN(v))){box.className="cf-res ruim";box.textContent="Há um valor inválido. Use o formato 1.234,56.";return;}
+  if(!(d.compras>0)){box.className="cf-res";box.innerHTML=`Previsto pelo app para ${mesNome(cfK)}: <b>${brl(prev)}</b>. Digite o total de despesas do banco para comparar.`;return;}
+  const x=confCalc(d,prev),ok=Math.abs(x.dif)<=1;box.className="cf-res "+(ok?"ok":"aviso");
+  box.innerHTML=`<div class="cf-l"><span>Previsto pelo app</span><b>${brl(x.previsto)}</b></div><div class="cf-l"><span>Despesas no banco</span><b>${brl(x.compras)}</b></div><div class="cf-l tot"><span>Diferença</span><b>${ok?"R$ 0,00":(x.dif>0?"+":"−")+brl(Math.abs(x.dif))}</b></div>
+    <p>${confTxt(x)} ${ok?"":x.dif>0?"O mais comum: compras ou parcelas que não foram lançadas no app.":"O mais comum: um item do app que não foi cobrado nesta fatura ou caiu em outra."}</p>
+    ${x.aPagar!=null?`<div class="cf-l"><span>Pago antecipado no mês</span><b>${brl(x.antecipado)}</b></div><div class="cf-l tot"><span>A pagar</span><b>${brl(x.aPagar)}</b></div>${x.difBanco!=null?`<p>${Math.abs(x.difBanco)<=1?"✓ Igual ao total a pagar do banco.":`O banco mostra ${brl(d.aPagar)} (${brl(Math.abs(x.difBanco))} de diferença: confira créditos e estornos).`}</p>`:""}`:(d.pagamentos!=null||d.saldoAnt!=null?`<p>Para calcular o "a pagar", preencha o saldo anterior e o total de pagamentos.</p>`:"")}
+    ${ok?"":`<p class="muted">Lembrete: os gastos da semana entram no app pelo mês em que foram feitos, e o banco cobra os de dia 27 a 26. Parte da diferença pode vir daí.</p>`}`;
+}
+function cfHistorico(){
+  const ms=Object.keys(S.meses).filter(m=>(S.meses[m]||{}).faturaReal).sort().reverse();
+  $("cfHist").innerHTML=ms.length?`<h3 class="aj-h" style="margin-top:6px">Previsto x banco</h3><div class="cf-hist">${ms.slice(0,12).map(m=>{const x=confCalc(S.meses[m].faturaReal,Core.relatorio(S,m,new Date()).fatura.total),ok=Math.abs(x.dif)<=1;
+    return `<div><span>${mesCurto(m)}</span><span class="num">${brl0(x.previsto)}</span><span class="num">${brl0(x.compras)}</span><b class="num ${ok?"":x.dif>0?"sobe":"desce"}">${ok?"✓":(x.dif>0?"+":"−")+brl0(Math.abs(x.dif))}</b></div>`;}).join("")}</div><p class="sec-note">Mês · previsto pelo app · despesas no banco · diferença.</p>`:"";
+}
+function abrirConf(k){cfK=k;const d=(S.meses[k]||{}).faturaReal||{};
+  $("cfTitulo").textContent=`Conferir a fatura de ${mesCurto(k)}`;
+  [["cfCompras","compras"],["cfSaldoAnt","saldoAnt"],["cfPag","pagamentos"],["cfAPagar","aPagar"]].forEach(([id,c])=>{$(id).value=d[c]!=null?fmtInput(d[c]):"";});
+  $("cfApagar").hidden=!(S.meses[k]||{}).faturaReal;cfAtualiza();cfHistorico();abrir("sheetConf");}
+["cfCompras","cfSaldoAnt","cfPag","cfAPagar"].forEach(id=>$(id).addEventListener("input",cfAtualiza));
+$("cfSalvar").onclick=async()=>{const d=cfLer();
+  if(Object.values(d).some(v=>v!==null&&isNaN(v))){toast("Há um valor inválido.");return;}
+  if(!(d.compras>0)){toast("Digite o total de despesas do banco.");$("cfCompras").focus();return;}
+  const prev=Core.relatorio(S,cfK,new Date()).fatura.total,x=confCalc(d,prev);
+  const ok=await write(()=>aplicar([{t:"merge",col:"meses",id:cfK,data:{faturaReal:{...d,previsto:prev,em:ymd(new Date())}}}]),`Fatura de ${mesCurto(cfK)} conferida. ${confTxt(x)}`);
+  if(ok)fechar("sheetConf");};
+$("cfApagar").onclick=async()=>{if(!confirm(`Apagar a conferência da fatura de ${mesNome(cfK)}?`))return;
+  const ok=await write(()=>aplicar([{t:"merge",col:"meses",id:cfK,data:{faturaReal:null}}]),"Conferência apagada.");if(ok)fechar("sheetConf");};
+$("tab-cartao").addEventListener("click",e=>{const b=e.target.closest("[data-fatconf]");if(b)abrirConf(b.dataset.fatconf);});
 function irFatura(k){ui.fat=k;renderCartao();}
 $("tab-cartao").addEventListener("click",e=>{
   const nv=e.target.closest("[data-fatnav]");if(nv){if(!nv.disabled)irFatura(addMonths(ui.fat||monthKey(today),Number(nv.dataset.fatnav)));return;}
